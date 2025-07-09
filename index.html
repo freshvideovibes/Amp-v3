@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auftragsmanager Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        select, input[type="text"], input[type="date"], input[type="time"], input[type="file"], textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: #212529;
+        }
+
+        .back-btn {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 8px 16px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            width: auto;
+        }
+
+        .back-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .card-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .rating {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .star {
+            color: #ffd700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .star:hover {
+            transform: scale(1.2);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            padding-right: 50px;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .menu-item {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .menu-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div class="screen active" id="loginScreen">
+            <h1>Auftragsmanager Pro</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="role">Rolle wählen:</label>
+                    <select id="role" required>
+                        <option value="">– bitte wählen –</option>
+                        <option value="admin">Admin</option>
+                        <option value="agent">Agent</option>
+                        <option value="monteur">Monteur</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="password">Passwort:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn">🔐 Einloggen</button>
+                <div id="loginError" class="error-message" style="display: none;">
+                    ❌ Falsches Passwort oder Rolle
+                </div>
+            </form>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div class="screen" id="dashboardScreen">
+            <button class="back-btn" onclick="logout()">← Ausloggen</button>
+            <h1>Willkommen <span id="userRole"></span></h1>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="openOrders">12</div>
+                    <div class="stat-label">Offene Aufträge</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completedToday">5</div>
+                    <div class="stat-label">Heute erledigt</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRevenue">€2,450</div>
+                    <div class="stat-label">Tagesumsatz</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="averageRating">4.8</div>
+                    <div class="stat-label">Bewertung</div>
+                </div>
+            </div>
+
+            <div class="menu-grid" id="menuGrid">
+                <!-- Menu items will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- New Order Screen -->
+        <div class="screen" id="newOrderScreen">
+            <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
+            <h1>🆕 Neuer Auftrag</h1>
+            <form id="newOrderForm">
+                <div class="form-group">
+                    <label for="country">Land wählen:</label>
+                    <select id="country" required>
+                        <option value="AT">🇦🇹 Österreich</option>
+                        <option value="CH">🇨🇭 Schweiz</option>
+                        <option value="DE">🇩🇪 Deutschland</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="industry">Branche wählen:</label>
+                    <select id="industry" required>
+                        <option value="rohrreinigung">🔧 Rohrreinigung</option>
+                        <option value="schlüsseldienst">🔑 Schlüsseldienst</option>
+                        <option value="schädlingsbekämpfung">🐛 Schädlingsbekämpfung</option>
+                        <option value="sanitär">🚿 Sanitär</option>
+                        <option value="elektrik">⚡ Elektrik</option>
+                        <option value="heizung">🔥 Heizung</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="customerName">Kundenname:</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerAddress">Adresse:</label>
+                    <input type="text" id="customerAddress" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone">Telefon:</label>
+                    <input type="tel" id="customerPhone" required>
+                </div>
+                <div class="form-group">
+                    <label for="orderDate">Datum:</label>
+                    <input type="date" id="orderDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="orderTime">Uhrzeit:</label>
+                    <input type="time" id="orderTime" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Beschreibung:</label>
+                    <textarea id="description" rows="3" placeholder="Beschreibung des Problems..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="priority">Priorität:</label>
+                    <select id="priority">
+                        <option value="normal">🟢 Normal</option>
+                        <option value="hoch">🟡 Hoch</option>
+                        <option value="notfall">🔴 Notfall</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">📨 Auftrag speichern</button>
+            </form>
+        </div>
+
+        <!-- Search Orders Screen -->
+        <div class="screen" id="searchOrdersScreen">
+            <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
+            <h1>🔍 Auftrag suchen</h1>
+            
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Suche nach Auftragsnummer, Name oder Adresse...">
+                <button class="search-btn" onclick="searchOrders()">🔍</button>
+            </div>
+
+            <div class="filter-row">
+                <select id="filterCountry">
+                    <option value="">Alle Länder</option>
+                    <option value="AT">🇦🇹 Österreich</option>
+                    <option value="CH">🇨🇭 Schweiz</option>
+                    <option value="DE">🇩🇪 Deutschland</option>
+                </select>
+                <select id="filterIndustry">
+                    <option value="">Alle Branchen</option>
+                    <option value="rohrreinigung">Rohrreinigung</option>
+                    <option value="schlüsseldienst">Schlüsseldienst</option>
+                    <option value="schädlingsbekämpfung">Schädlingsbekämpfung</option>
+                    <option value="sanitär">Sanitär</option>
+                </select>
+                <select id="filterStatus">
+                    <option value="">Alle Status</option>
+                    <option value="offen">Offen</option>
+                    <option value="in_bearbeitung">In Bearbeitung</option>
+                    <option value="abgeschlossen">Abgeschlossen</option>
+                </select>
+            </div>
+
+            <div id="searchResults"></div>
+        </div>
+
+        <!-- Report Revenue Screen -->
+        <div class="screen" id="reportRevenueScreen">
+            <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
+            <h1>💰 Umsatz melden</h1>
+            
+            <div class="search-container">
+                <input type="text" id="revenueSearchInput" class="search-input" placeholder="Auftragsnummer eingeben...">
+                <button class="search-btn" onclick="searchOrderForRevenue()">🔍</button>
+            </div>
+
+            <div id="selectedOrder" style="display: none;">
+                <div class="card">
+                    <div class="card-title" id="orderTitle"></div>
+                    <div class="card-text" id="orderDetails"></div>
+                </div>
+
+                <form id="revenueForm">
+                    <div class="form-group">
+                        <label for="amount">Betrag (€):</label>
+                        <input type="number" id="amount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="paymentMethod">Zahlungsart:</label>
+                        <select id="paymentMethod" required>
+                            <option value="bar">💵 Bar</option>
+                            <option value="überweisung">🏦 Überweisung</option>
+                            <option value="ec">💳 EC-Karte</option>
+                            <option value="twint">📱 Twint</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Screenshot / Foto hochladen:</label>
+                        <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
+                            <div>📸 Klicken zum Hochladen</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 8px;">oder Datei hier hineinziehen</div>
+                        </div>
+                        <input type="file" id="fileUpload" accept="image/*" style="display: none;">
+                    </div>
+                    <button type="submit" class="btn btn-success">✅ Umsatz melden</button>
+                    <button type="button" class="btn btn-danger" onclick="markOrderUnpaid()">❌ Auftrag nicht bezahlt</button>
+                    <button type="button" class="btn btn-warning" onclick="cancelOrder()">🚫 Auftrag stornieren</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- My Orders Screen -->
+        <div class="screen" id="myOrdersScreen">
+            <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
+            <h1>👷 Meine Aufträge</h1>
+            
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #dc3545; margin-bottom: 10px;">Offen:</h3>
+                <div id="openOrdersList"></div>
+            </div>
+
+            <div>
+                <h3 style="color: #28a745; margin-bottom: 10px;">Abgeschlossen:</h3>
+                <div id="completedOrdersList"></div>
+            </div>
+        </div>
+
+        <!-- Daily Report Screen -->
+        <div class="screen" id="dailyReportScreen">
+            <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
+            <h1>📊 Tagesreport</h1>
+            
+            <div class="filter-row">
+                <select id="reportMonteur">
+                    <option value="">Alle Monteure</option>
+                    <option value="thomas">Thomas</option>
+                    <option value="anna">Anna</option>
+                    <option value="max">Max</option>
+                </select>
+                <select id="reportIndustry">
+                    <option value="">Alle Branchen</option>
+                    <option value="rohrreinigung">Rohrreinigung</option>
+                    <option value="sanitär">Sanitär</option>
+                    <option value="schlüsseldienst">Schlüsseldienst</option>
+                </select>
+                <select id="reportCountry">
+                    <option value="">Alle Länder</option>
+                    <option value="AT">Österreich</option>
+                    <option value="CH">Schweiz</option>
+                    <option value="DE">Deutschland</option>
+                </select>
+            </div>
+
+            <button class="btn" onclick="generateReport()">📑 Report generieren</button>
+            
+            <div id="reportResults"></div>
+        </div>
+
+        <!-- User Management Screen -->
+        <div class="screen" id="userManagementScreen">
+            <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
+            <h1>⚙️ Nutzerverwaltung & Bewertungen</h1>
+            
+            <div id="usersList"></div>
+            
+            <button class="btn" onclick="showAddUserForm()">➕ Neuen Benutzer hinzufügen</button>
+        </div>
+
+        <!-- Loading Screen -->
+        <div class="loading" id="loadingScreen">
+            <div class="spinner"></div>
+            <p>Laden...</p>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let orders = [];
+        let users = [];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Initialize sample data
+            initializeSampleData();
+            
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('orderDate').value = today;
+            
+            // Add event listeners
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('newOrderForm').addEventListener('submit', handleNewOrder);
+            document.getElementById('revenueForm').addEventListener('submit', handleRevenueReport);
+            
+            // File upload handling
+            const uploadArea = document.querySelector('.upload-area');
+            const fileUpload = document.getElementById('fileUpload');
+            
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            fileUpload.addEventListener('change', handleFileSelect);
+            
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', searchOrders);
+            document.getElementById('filterCountry').addEventListener('change', searchOrders);
+            document.getElementById('filterIndustry').addEventListener('change', searchOrders);
+            document.getElementById('filterStatus').addEventListener('change', searchOrders);
+        }
+
+        function initializeSampleData() {
+            // Sample orders
+            orders = [
+                {
+                    id: 4711,
+                    customer: "Max M.",
+                    address: "1230 Wien",
+                    industry: "rohrreinigung",
+                    country: "AT",
+                    status: "offen",
+                    date: "2025-07-09",
+                    time: "14:00",
+                    monteur: "thomas",
+                    priority: "normal",
+                    phone: "+43 1 123456",
+                    description: "Verstopfte Abwasserleitung im Keller"
+                },
+                {
+                    id: 4710,
+                    customer: "Anna K.",
+                    address: "1220 Wien",
+                    industry: "sanitär",
+                    country: "AT",
+                    status: "abgeschlossen",
+                    date: "2025-07-08",
+                    time: "10:30",
+                    monteur: "anna",
+                    priority: "hoch",
+                    phone: "+43 1 789012",
+                    description: "Tropfender Wasserhahn"
+                }
+            ];
+
+            // Sample users
+            users = [
+                {
+                    id: 1,
+                    name: "Thomas",
+                    role: "monteur",
+                    rating: 4.8,
+                    completedOrders: 156,
+                    avatar: "T"
+                },
+                {
+                    id: 2,
+                    name: "Anna",
+                    role: "monteur",
+                    rating: 4.9,
+                    completedOrders: 203,
+                    avatar: "A"
+                },
+                {
+                    id: 3,
+                    name: "Jonas",
+                    role: "agent",
+                    rating: 4.7,
+                    completedOrders: 89,
+                    avatar: "J"
+                }
+            ];
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const role = document.getElementById('role').value;
+            const password = document.getElementById('password').value;
+            
+            // Simple authentication (in real app, use proper authentication)
+            const validCredentials = {
+                admin: "admin123",
+                agent: "agent123",
+                monteur: "monteur123"
+            };
+            
+            if (validCredentials[role] === password) {
+                currentUser = { role: role, name: getNameByRole(role) };
+                document.getElementById('userRole').textContent = currentUser.name;
+                showScreen('dashboardScreen');
+                setupMenuForRole(role);
+                updateDashboardStats();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        function getNameByRole(role) {
+            const names = {
+                admin: "Administrator",
+                agent: "Agent",
+                monteur: "Monteur"
+            };
+            return names[role] || role;
+        }
+
+        function setupMenuForRole(role) {
+            const menuGrid = document.getElementById('menuGrid');
+            const menuItems = {
+                admin: [
+                    { id: 'newOrderScreen', icon: '🆕', text: 'Neuer Auftrag' },
+                    { id: 'searchOrdersScreen', icon: '🔍', text: 'Auftrag suchen' },
+                    { id: 'dailyReportScreen', icon: '📊', text: 'Tagesreport' },
+                    { id: 'userManagementScreen', icon: '⚙️', text: 'Benutzerverwaltung' },
+                    { id: 'reportRevenueScreen', icon: '💰', text: 'Umsatz melden' },
+                    { id: 'myOrdersScreen', icon: '👷', text: 'Alle Aufträge' }
+                ],
+                agent: [
+                    { id: 'newOrderScreen', icon: '🆕', text: 'Neuer Auftrag' },
+                    { id: 'searchOrdersScreen', icon: '🔍', text: 'Auftrag suchen' },
+                    { id: 'myOrdersScreen', icon: '👷', text: 'Meine Aufträge' },
+                    { id: 'dailyReportScreen', icon: '📊', text: 'Tagesreport' }
+                ],
+                monteur: [
+                    { id: 'myOrdersScreen', icon: '👷', text: 'Meine Aufträge' },
+                    { id: 'reportRevenueScreen', icon: '💰', text: 'Umsatz melden' },
+                    { id: 'searchOrdersScreen', icon: '🔍', text: 'Auftrag suchen' }
+                ]
+            };
+
+            menuGrid.innerHTML = '';
+            menuItems[role].forEach(item => {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item';
+                menuItem.innerHTML = `
+                    <div class="menu-icon">${item.icon}</div>
+                    <div>${item.text}</div>
+                `;
+                menuItem.onclick = () => showScreen(item.id);
+                menuGrid.appendChild(menuItem);
+            });
+        }
+
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show selected screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // Load screen-specific data
+            if (screenId === 'myOrdersScreen') {
+                loadMyOrders();
+            } else if (screenId === 'userManagementScreen') {
+                loadUserManagement();
+            } else if (screenId === 'searchOrdersScreen') {
+                searchOrders();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginForm').reset();
+            document.getElementById('loginError').style.display = 'none';
+            showScreen('loginScreen');
+        }
+
+        function handleNewOrder(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const newOrder = {
+                id: Math.floor(Math.random() * 10000),
+                customer: document.getElementById('customerName').value,
+                address: document.getElementById('customerAddress').value,
+                industry: document.getElementById('industry').value,
+                country: document.getElementById('country').value,
+                status: 'offen',
+                date: document.getElementById('orderDate').value,
+                time: document.getElementById('orderTime').value,
+                phone: document.getElementById('customerPhone').value,
+                description: document.getElementById('description').value,
+                priority: document.getElementById('priority').value,
+                monteur: null
+            };
+            
+            orders.push(newOrder);
+            showSuccess('Auftrag erfolgreich erstellt!');
+            
+            // Reset form
+            e.target.reset();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('orderDate').value = today;
+            
+            // Update stats
+            updateDashboardStats();
+            
+            setTimeout(() => {
+                showScreen('dashboardScreen');
+            }, 2000);
+        }
+
+        function searchOrders() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const countryFilter = document.getElementById('filterCountry').value;
+            const industryFilter = document.getElementById('filterIndustry').value;
+            const statusFilter = document.getElementById('filterStatus').value;
+            
+            let filteredOrders = orders.filter(order => {
+                const matchesSearch = !searchTerm || 
+                    order.customer.toLowerCase().includes(searchTerm) ||
+                    order.address.toLowerCase().includes(searchTerm) ||
+                    order.id.toString().includes(searchTerm);
+                
+                const matchesCountry = !countryFilter || order.country === countryFilter;
+                const matchesIndustry = !industryFilter || order.industry === industryFilter;
+                const matchesStatus = !statusFilter || order.status === statusFilter;
+                
+                return matchesSearch && matchesCountry && matchesIndustry && matchesStatus;
+            });
+            
+            displaySearchResults(filteredOrders);
+        }
+
+        function displaySearchResults(orders) {
+            const resultsContainer = document.getElementById('searchResults');
+            
+            if (orders.length === 0) {
+                resultsContainer.innerHTML = '<p style="text-align: center; color: #666;">Keine Aufträge gefunden.</p>';
+                return;
+            }
+            
+            resultsContainer.innerHTML = '';
+            orders.forEach(order => {
+                const orderCard = document.createElement('div');
+                orderCard.className = 'card';
+                orderCard.innerHTML = `
+                    <div class="card-title">
+                        ${getPriorityIcon(order.priority)} #${order.id} - ${order.customer}
+                    </div>
+                    <div class="card-text">
+                        📍 ${order.address}<br>
+                        🏢 ${getIndustryName(order.industry)}<br>
+                        📅 ${formatDate(order.date)} um ${order.time}<br>
+                        📊 Status: ${getStatusBadge(order.status)}
+                    </div>
+                `;
+                orderCard.onclick = () => showOrderDetails(order);
+                resultsContainer.appendChild(orderCard);
+            });
+        }
+
+        function searchOrderForRevenue() {
+            const searchTerm = document.getElementById('revenueSearchInput').value;
+            const order = orders.find(o => o.id.toString() === searchTerm);
+            
+            if (order) {
+                document.getElementById('selectedOrder').style.display = 'block';
+                document.getElementById('orderTitle').textContent = `#${order.id} - ${order.customer}`;
+                document.getElementById('orderDetails').innerHTML = `
+                    📍 ${order.address}<br>
+                    🏢 ${getIndustryName(order.industry)}<br>
+                    📅 ${formatDate(order.date)} um ${order.time}
+                `;
+            } else {
+                showError('Auftrag nicht gefunden!');
+                document.getElementById('selectedOrder').style.display = 'none';
+            }
+        }
+
+        function handleRevenueReport(e) {
+            e.preventDefault();
+            const orderId = document.getElementById('revenueSearchInput').value;
+            const amount = document.getElementById('amount').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            
+            // Update order status
+            const order = orders.find(o => o.id.toString() === orderId);
+            if (order) {
+                order.status = 'abgeschlossen';
+                order.amount = parseFloat(amount);
+                order.paymentMethod = paymentMethod;
+                order.completedDate = new Date().toISOString();
+            }
+            
+            showSuccess('Umsatz erfolgreich gemeldet!');
+            
+            // Reset form
+            e.target.reset();
+            document.getElementById('selectedOrder').style.display = 'none';
+            document.getElementById('revenueSearchInput').value = '';
+            
+            updateDashboardStats();
+        }
+
+        function markOrderUnpaid() {
+            const orderId = document.getElementById('revenueSearchInput').value;
+            const order = orders.find(o => o.id.toString() === orderId);
+            
+            if (order) {
+                order.status = 'nicht_bezahlt';
+                showSuccess('Auftrag als nicht bezahlt markiert!');
+            }
+        }
+
+        function cancelOrder() {
+            const orderId = document.getElementById('revenueSearchInput').value;
+            const order = orders.find(o => o.id.toString() === orderId);
+            
+            if (order) {
+                order.status = 'storniert';
+                showSuccess('Auftrag wurde storniert!');
+            }
+        }
+
+        function loadMyOrders() {
+            const openOrders = orders.filter(o => o.status === 'offen');
+            const completedOrders = orders.filter(o => o.status === 'abgeschlossen');
+            
+            displayOrdersList('openOrdersList', openOrders, true);
+            displayOrdersList('completedOrdersList', completedOrders, false);
+        }
+
+        function displayOrdersList(containerId, orders, showCompleteButton) {
+            const container = document.getElementById(containerId);
+            
+            if (orders.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Keine Aufträge gefunden.</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            orders.forEach(order => {
+                const orderCard = document.createElement('div');
+                orderCard.className = 'card';
+                orderCard.innerHTML = `
+                    <div class="card-title">
+                        ${getPriorityIcon(order.priority)} #${order.id} - ${order.customer}
+                    </div>
+                    <div class="card-text">
+                        📍 ${order.address}<br>
+                        🏢 ${getIndustryName(order.industry)}<br>
+                        📅 ${formatDate(order.date)} um ${order.time}
+                        ${showCompleteButton ? `<br><button class="btn btn-success" style="margin-top: 10px; width: auto; padding: 8px 16px;" onclick="completeOrder(${order.id})">🧾 Abschließen</button>` : ''}
+                    </div>
+                `;
+                container.appendChild(orderCard);
+            });
+        }
+
+        function completeOrder(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.status = 'abgeschlossen';
+                order.completedDate = new Date().toISOString();
+                showSuccess('Auftrag erfolgreich abgeschlossen!');
+                loadMyOrders();
+                updateDashboardStats();
+            }
+        }
+
+        function generateReport() {
+            const monteurFilter = document.getElementById('reportMonteur').value;
+            const industryFilter = document.getElementById('reportIndustry').value;
+            const countryFilter = document.getElementById('reportCountry').value;
+            
+            let filteredOrders = orders.filter(order => {
+                const matchesMonteur = !monteurFilter || order.monteur === monteurFilter;
+                const matchesIndustry = !industryFilter || order.industry === industryFilter;
+                const matchesCountry = !countryFilter || order.country === countryFilter;
+                
+                return matchesMonteur && matchesIndustry && matchesCountry;
+            });
+            
+            displayReport(filteredOrders);
+        }
+
+        function displayReport(orders) {
+            const container = document.getElementById('reportResults');
+            
+            const totalOrders = orders.length;
+            const completedOrders = orders.filter(o => o.status === 'abgeschlossen').length;
+            const totalRevenue = orders.filter(o => o.amount).reduce((sum, o) => sum + o.amount, 0);
+            
+            container.innerHTML = `
+                <div style="margin-top: 20px;">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">${totalOrders}</div>
+                            <div class="stat-label">Gesamt Aufträge</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${completedOrders}</div>
+                            <div class="stat-label">Abgeschlossen</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">€${totalRevenue.toFixed(2)}</div>
+                            <div class="stat-label">Umsatz</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${totalOrders > 0 ? ((completedOrders / totalOrders) * 100).toFixed(1) : 0}%</div>
+                            <div class="stat-label">Erfolgsquote</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadUserManagement() {
+            const container = document.getElementById('usersList');
+            
+            container.innerHTML = '';
+            users.forEach(user => {
+                const userCard = document.createElement('div');
+                userCard.className = 'user-card';
+                userCard.innerHTML = `
+                    <div class="user-avatar">${user.avatar}</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600;">${user.name}</div>
+                        <div style="color: #666; font-size: 12px;">${user.role}</div>
+                        <div style="color: #666; font-size: 12px;">${user.completedOrders} Aufträge</div>
+                    </div>
+                    <div>
+                        <div class="rating">
+                            ${generateStars(user.rating)}
+                        </div>
+                        <div style="text-align: center; margin-top: 4px; font-size: 12px;">
+                            ${user.rating.toFixed(1)} ⭐
+                        </div>
+                    </div>
+                `;
+                container.appendChild(userCard);
+            });
+        }
+
+        function generateStars(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    stars += '<span class="star">⭐</span>';
+                } else {
+                    stars += '<span class="star" style="color: #ddd;">⭐</span>';
+                }
+            }
+            return stars;
+        }
+
+        function updateDashboardStats() {
+            const openOrders = orders.filter(o => o.status === 'offen').length;
+            const completedToday = orders.filter(o => 
+                o.status === 'abgeschlossen' && 
+                o.completedDate && 
+                new Date(o.completedDate).toDateString() === new Date().toDateString()
+            ).length;
+            
+            const todayRevenue = orders.filter(o => 
+                o.amount && 
+                o.completedDate && 
+                new Date(o.completedDate).toDateString() === new Date().toDateString()
+            ).reduce((sum, o) => sum + o.amount, 0);
+            
+            document.getElementById('openOrders').textContent = openOrders;
+            document.getElementById('completedToday').textContent = completedToday;
+            document.getElementById('totalRevenue').textContent = `€${todayRevenue.toFixed(2)}`;
+        }
+
+        function showOrderDetails(order) {
+            alert(`Auftrag #${order.id}\n\nKunde: ${order.customer}\nAdresse: ${order.address}\nBranche: ${getIndustryName(order.industry)}\nDatum: ${formatDate(order.date)} um ${order.time}\nStatus: ${order.status}\nBeschreibung: ${order.description || 'Keine Beschreibung'}`);
+        }
+
+        function showSuccess(message) {
+            const existingMessage = document.querySelector('.success-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            
+            const activeScreen = document.querySelector('.screen.active');
+            activeScreen.insertBefore(successDiv, activeScreen.firstChild);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+
+        function showError(message) {
+            const existingMessage = document.querySelector('.error-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            
+            const activeScreen = document.querySelector('.screen.active');
+            activeScreen.insertBefore(errorDiv, activeScreen.firstChild);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 3000);
+        }
+
+        // File upload handlers
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFileUpload(file);
+            }
+        }
+
+        function handleFileUpload(file) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const uploadArea = document.querySelector('.upload-area');
+                    uploadArea.innerHTML = `
+                        <div>✅ Datei hochgeladen: ${file.name}</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 8px;">Klicken zum Ändern</div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showError('Bitte nur Bilddateien hochladen!');
+            }
+        }
+
+        // Helper functions
+        function getIndustryName(industry) {
+            const names = {
+                rohrreinigung: 'Rohrreinigung',
+                schlüsseldienst: 'Schlüsseldienst',
+                schädlingsbekämpfung: 'Schädlingsbekämpfung',
+                sanitär: 'Sanitär',
+                elektrik: 'Elektrik',
+                heizung: 'Heizung'
+            };
+            return names[industry] || industry;
+        }
+
+        function getStatusBadge(status) {
+            const badges = {
+                offen: '🔴 Offen',
+                in_bearbeitung: '🟡 In Bearbeitung',
+                abgeschlossen: '✅ Abgeschlossen',
+                nicht_bezahlt: '❌ Nicht bezahlt',
+                storniert: '🚫 Storniert'
+            };
+            return badges[status] || status;
+        }
+
+        function getPriorityIcon(priority) {
+            const icons = {
+                normal: '🟢',
+                hoch: '🟡',
+                notfall: '🔴'
+            };
+            return icons[priority] || '🟢';
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function showAddUserForm() {
+            const name = prompt('Name des neuen Benutzers:');
+            if (name) {
+                const role = prompt('Rolle (admin/agent/monteur):');
+                if (role && ['admin', 'agent', 'monteur'].includes(role)) {
+                    const newUser = {
+                        id: users.length + 1,
+                        name: name,
+                        role: role,
+                        rating: 5.0,
+                        completedOrders: 0,
+                        avatar: name.charAt(0).toUpperCase()
+                    };
+                    users.push(newUser);
+                    loadUserManagement();
+                    showSuccess('Benutzer erfolgreich hinzugefügt!');
+                } else {
+                    showError('Ungültige Rolle!');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
