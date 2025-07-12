@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
@@ -53,7 +53,7 @@ THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
 
         .screen {
             display: none;
-            animation: slideIn 0.3s ease-out;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .screen.active {
@@ -61,8 +61,29 @@ THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
         }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.95);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .screen.fade-out {
+            animation: fadeOut 0.3s ease-in forwards;
+        }
+
+        @keyframes fadeOut {
+            from { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
+            to { 
+                opacity: 0; 
+                transform: translateY(-10px) scale(0.98);
+            }
         }
 
         h1 {
@@ -76,15 +97,21 @@ THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
         }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
-            margin-bottom: 6px;
-            color: var(--tg-theme-text-color, #000000);
+            margin-bottom: 8px;
+            color: var(--tg-theme-text-color, #1a1a1a);
             font-weight: 500;
             font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group:focus-within label {
+            color: var(--tg-theme-button-color, #667eea);
+            transform: translateY(-2px);
         }
 
         select, input[type="text"], input[type="tel"], input[type="email"], input[type="number"], input[type="date"], input[type="time"], input[type="file"], textarea {
@@ -173,19 +200,24 @@ THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
         }
 
         .back-btn {
-            background: transparent;
-            color: var(--tg-theme-button-color, #007bff);
-            border: 1px solid var(--tg-theme-button-color, #007bff);
-            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--tg-theme-button-color, #667eea);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 10px 18px;
             font-size: 14px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             width: auto;
-            border-radius: 6px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
 
         .back-btn:hover {
-            background: var(--tg-theme-button-color, #007bff);
+            background: var(--tg-theme-button-color, #667eea);
             color: var(--tg-theme-button-text-color, #ffffff);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
         .error-message {
@@ -302,8 +334,9 @@ THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
         }
 
         .menu-icon {
-            font-size: 24px;
-            margin-bottom: 8px;
+            font-size: 28px;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
         }
 
         .search-container {
@@ -453,20 +486,42 @@ THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
 
         @media (max-width: 480px) {
             .container {
-                padding: 16px;
-                margin: 5px;
+                padding: 20px;
+                margin: 8px;
+                border-radius: 20px;
             }
             
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 16px;
             }
             
             .menu-grid {
                 grid-template-columns: 1fr;
+                gap: 16px;
             }
             
             .filter-row {
                 grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            .btn {
+                padding: 16px 18px;
+                font-size: 16px;
+            }
+            
+            .menu-item {
+                padding: 24px;
+            }
+            
+            .menu-icon {
+                font-size: 28px;
+                margin-bottom: 12px;
             }
         }
     </style>
@@ -786,6 +841,7 @@ THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
                 </select>
                 <select id="reportCountry">
                     <option value="">Alle Länder</option>
+                    <option value="DE">🇩🇪 Deutschland</option>
                     <option value="AT">🇦🇹 Österreich</option>
                     <option value="CH">🇨🇭 Schweiz</option>
                 </select>
@@ -1049,6 +1105,41 @@ THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
                     amount: 180.50,
                     paymentMethod: "twint",
                     mapsLink: generateMapsLink("Bahnhofstrasse 12, 8001 Zürich")
+                },
+                {
+                    id: 4708,
+                    customer: "Franziska Müller",
+                    address: "Hauptstraße 89, 10115 Berlin",
+                    industry: "rohrreinigung",
+                    country: "DE",
+                    status: "neu",
+                    date: "2025-01-16",
+                    time: "09:00",
+                    monteur: null,
+                    priority: "hoch",
+                    phone: "+49 30 12345678",
+                    description: "Verstopfte Toilette im Erdgeschoss",
+                    createdAt: new Date(Date.now() - 7200000).toISOString(),
+                    mapsLink: generateMapsLink("Hauptstraße 89, 10115 Berlin")
+                },
+                {
+                    id: 4707,
+                    customer: "Klaus Weber",
+                    address: "Marienplatz 5, 80331 München",
+                    industry: "elektrik",
+                    country: "DE",
+                    status: "abgeschlossen",
+                    date: "2025-01-13",
+                    time: "14:30",
+                    monteur: "michael_schmidt",
+                    priority: "normal",
+                    phone: "+49 89 9876543",
+                    description: "Sicherungskasten Wartung",
+                    createdAt: new Date(Date.now() - 259200000).toISOString(),
+                    completedAt: new Date(Date.now() - 172800000).toISOString(),
+                    amount: 299.99,
+                    paymentMethod: "paypal",
+                    mapsLink: generateMapsLink("Marienplatz 5, 80331 München")
                 }
             ];
 
@@ -1089,6 +1180,30 @@ THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
                     completedOrders: 89,
                     status: "aktiv",
                     registeredAt: new Date(Date.now() - 86400000 * 15).toISOString()
+                },
+                {
+                    id: "michael_schmidt",
+                    name: "Michael Schmidt",
+                    phone: "+49 176 87654321",
+                    country: "DE",
+                    serviceArea: "Berlin, Brandenburg",
+                    branches: ["elektrik", "sanitär"],
+                    rating: 4.9,
+                    completedOrders: 287,
+                    status: "aktiv",
+                    registeredAt: new Date(Date.now() - 86400000 * 45).toISOString()
+                },
+                {
+                    id: "stefanie_bauer",
+                    name: "Stefanie Bauer",
+                    phone: "+49 152 98765432",
+                    country: "DE",
+                    serviceArea: "München, Bayern",
+                    branches: ["rohrreinigung", "heizung"],
+                    rating: 4.8,
+                    completedOrders: 156,
+                    status: "aktiv",
+                    registeredAt: new Date(Date.now() - 86400000 * 22).toISOString()
                 }
             ];
         }
@@ -1601,6 +1716,9 @@ THIS SHOULD BE A LINTER ERROR<!DOCTYPE html>
                 'bar': 0,
                 'überweisung': 0,
                 'ec': 0,
+                'kreditkarte': 0,
+                'paypal': 0,
+                'klarna': 0,
                 'twint': 0
             };
             
@@ -1966,6 +2084,9 @@ ${order.paymentMethod ? `💳 Zahlungsart: ${getPaymentMethodName(order.paymentM
                 bar: '💵 Bar',
                 überweisung: '🏦 Überweisung',
                 ec: '💳 EC-Karte',
+                kreditkarte: '💳 Kreditkarte',
+                paypal: '💙 PayPal',
+                klarna: '💜 Klarna',
                 twint: '📱 Twint'
             };
             return names[method] || method;
