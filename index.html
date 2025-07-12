@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auftragsmanager Pro</title>
+    <title>AMP - AuftragsManager Pro</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
@@ -12,25 +13,27 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
+            align-items: flex-start;
+            padding: 10px;
+            margin: 0;
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
+            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-width: 420px;
             width: 100%;
-            padding: 30px;
+            padding: 20px;
             position: relative;
             overflow: hidden;
+            margin-top: 10px;
         }
 
         .container::before {
@@ -39,72 +42,73 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 3px;
+            background: var(--tg-theme-button-color, #007bff);
         }
 
         .screen {
             display: none;
-            animation: fadeIn 0.3s ease-in-out;
+            animation: slideIn 0.3s ease-out;
         }
 
         .screen.active {
             display: block;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         h1 {
             text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 24px;
+            color: var(--tg-theme-text-color, #000000);
+            margin-bottom: 24px;
+            font-size: 20px;
             font-weight: 600;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            color: #555;
+            margin-bottom: 6px;
+            color: var(--tg-theme-text-color, #000000);
             font-weight: 500;
             font-size: 14px;
         }
 
-        select, input[type="text"], input[type="date"], input[type="time"], input[type="file"], textarea {
+        select, input[type="text"], input[type="tel"], input[type="email"], input[type="number"], input[type="date"], input[type="time"], input[type="file"], textarea {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
+            padding: 12px 14px;
+            border: 1px solid var(--tg-theme-hint-color, #999999);
+            border-radius: 8px;
             font-size: 16px;
             transition: all 0.3s ease;
-            background: white;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
         }
 
         select:focus, input:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--tg-theme-button-color, #007bff);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
         }
 
         .btn {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 12px;
+            background: var(--tg-theme-button-color, #007bff);
+            color: var(--tg-theme-button-text-color, #ffffff);
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -112,8 +116,8 @@
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
 
         .btn:active {
@@ -121,36 +125,39 @@
         }
 
         .btn-secondary {
-            background: #6c757d;
-            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            background: var(--tg-theme-secondary-bg-color, #6c757d);
+            color: var(--tg-theme-text-color, #ffffff);
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: #28a745;
+            color: #ffffff;
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            background: #dc3545;
+            color: #ffffff;
         }
 
         .btn-warning {
-            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            background: #ffc107;
             color: #212529;
         }
 
         .back-btn {
             background: transparent;
-            color: #667eea;
-            border: 2px solid #667eea;
+            color: var(--tg-theme-button-color, #007bff);
+            border: 1px solid var(--tg-theme-button-color, #007bff);
             padding: 8px 16px;
             font-size: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             width: auto;
+            border-radius: 6px;
         }
 
         .back-btn:hover {
-            background: #667eea;
-            color: white;
+            background: var(--tg-theme-button-color, #007bff);
+            color: var(--tg-theme-button-text-color, #ffffff);
         }
 
         .error-message {
@@ -158,8 +165,9 @@
             color: #721c24;
             padding: 12px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             border: 1px solid #f5c6cb;
+            font-size: 14px;
         }
 
         .success-message {
@@ -167,13 +175,14 @@
             color: #155724;
             padding: 12px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             border: 1px solid #c3e6cb;
+            font-size: 14px;
         }
 
         .card {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
+            background: var(--tg-theme-bg-color, #ffffff);
+            border: 1px solid var(--tg-theme-hint-color, #e9ecef);
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 12px;
@@ -188,84 +197,77 @@
 
         .card-title {
             font-weight: 600;
-            color: #333;
+            color: var(--tg-theme-text-color, #000000);
             margin-bottom: 8px;
+            font-size: 15px;
         }
 
         .card-text {
-            color: #666;
+            color: var(--tg-theme-hint-color, #666666);
             font-size: 14px;
+            line-height: 1.4;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
+            gap: 12px;
             margin-bottom: 20px;
         }
 
         .stat-card {
-            background: white;
-            padding: 20px;
+            background: var(--tg-theme-bg-color, #ffffff);
+            padding: 16px;
             border-radius: 12px;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--tg-theme-hint-color, #e9ecef);
         }
 
         .stat-number {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
-            color: #667eea;
+            color: var(--tg-theme-button-color, #007bff);
         }
 
         .stat-label {
-            font-size: 12px;
-            color: #666;
+            font-size: 11px;
+            color: var(--tg-theme-hint-color, #666666);
             margin-top: 4px;
         }
 
-        .rating {
-            display: flex;
-            gap: 4px;
-            margin-top: 8px;
-        }
-
-        .star {
-            color: #ffd700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .star:hover {
-            transform: scale(1.2);
-        }
-
-        .user-card {
-            display: flex;
-            align-items: center;
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
-            padding: 16px;
-            background: white;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
+        .menu-item {
+            background: var(--tg-theme-bg-color, #ffffff);
+            border: 1px solid var(--tg-theme-hint-color, #e9ecef);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--tg-theme-text-color, #000000);
+        }
+
+        .menu-item:hover {
+            border-color: var(--tg-theme-button-color, #007bff);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
         }
 
         .search-container {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .search-input {
@@ -274,71 +276,80 @@
 
         .search-btn {
             position: absolute;
-            right: 8px;
+            right: 6px;
             top: 50%;
             transform: translateY(-50%);
-            background: #667eea;
-            color: white;
+            background: var(--tg-theme-button-color, #007bff);
+            color: var(--tg-theme-button-text-color, #ffffff);
             border: none;
             padding: 8px 12px;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 14px;
         }
 
         .filter-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
         }
 
         .upload-area {
-            border: 2px dashed #667eea;
-            border-radius: 12px;
+            border: 2px dashed var(--tg-theme-button-color, #007bff);
+            border-radius: 8px;
             padding: 20px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .upload-area:hover {
-            border-color: #764ba2;
-            background: rgba(102, 126, 234, 0.05);
+            background: rgba(0, 123, 255, 0.05);
         }
 
         .upload-area.dragover {
-            border-color: #764ba2;
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(0, 123, 255, 0.1);
         }
 
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
-
-        .menu-item {
-            background: white;
-            border: 2px solid #e1e5e9;
+        .registration-form {
+            background: var(--tg-theme-bg-color, #ffffff);
+            border: 1px solid var(--tg-theme-hint-color, #e9ecef);
             border-radius: 12px;
             padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .maps-link {
+            display: inline-block;
+            background: #4285f4;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
             text-decoration: none;
-            color: #333;
+            font-size: 14px;
+            margin-top: 8px;
         }
 
-        .menu-item:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+        .maps-link:hover {
+            background: #3367d6;
         }
 
-        .menu-icon {
-            font-size: 24px;
-            margin-bottom: 8px;
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
         }
 
         .loading {
@@ -348,8 +359,8 @@
         }
 
         .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            border: 3px solid rgba(0, 123, 255, 0.3);
+            border-top: 3px solid var(--tg-theme-button-color, #007bff);
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -362,10 +373,47 @@
             100% { transform: rotate(360deg); }
         }
 
+        .reminder-settings {
+            background: var(--tg-theme-bg-color, #ffffff);
+            border: 1px solid var(--tg-theme-hint-color, #e9ecef);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .country-flag {
+            font-size: 18px;
+            margin-right: 8px;
+        }
+
+        .priority-urgent {
+            background: #dc3545;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .priority-high {
+            background: #ffc107;
+            color: #212529;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .priority-normal {
+            background: #28a745;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
         @media (max-width: 480px) {
             .container {
-                padding: 20px;
-                margin: 10px;
+                padding: 16px;
+                margin: 5px;
             }
             
             .stats-grid {
@@ -375,39 +423,95 @@
             .menu-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Login Screen -->
-        <div class="screen active" id="loginScreen">
-            <h1>Auftragsmanager Pro</h1>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="role">Rolle wählen:</label>
-                    <select id="role" required>
-                        <option value="">– bitte wählen –</option>
-                        <option value="admin">Admin</option>
-                        <option value="agent">Agent</option>
-                        <option value="monteur">Monteur</option>
-                    </select>
+        <!-- Welcome/Role Selection Screen -->
+        <div class="screen active" id="welcomeScreen">
+            <h1>🚀 AMP - AuftragsManager Pro</h1>
+            <p style="text-align: center; color: var(--tg-theme-hint-color, #666); margin-bottom: 24px; font-size: 14px;">
+                Digitale Auftragsverwaltung für Österreich & Schweiz
+            </p>
+            
+            <div class="menu-grid">
+                <div class="menu-item" onclick="selectRole('agent')">
+                    <div class="menu-icon">👤</div>
+                    <div>Agent</div>
                 </div>
-                <div class="form-group">
-                    <label for="password">Passwort:</label>
-                    <input type="password" id="password" required>
+                <div class="menu-item" onclick="selectRole('admin')">
+                    <div class="menu-icon">⚙️</div>
+                    <div>Admin</div>
                 </div>
-                <button type="submit" class="btn">🔐 Einloggen</button>
-                <div id="loginError" class="error-message" style="display: none;">
-                    ❌ Falsches Passwort oder Rolle
+                <div class="menu-item" onclick="selectRole('monteur')">
+                    <div class="menu-icon">🔧</div>
+                    <div>Monteur</div>
                 </div>
-            </form>
+                <div class="menu-item" onclick="showMonteurRegistration()">
+                    <div class="menu-icon">📝</div>
+                    <div>Registrierung</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monteur Registration Screen -->
+        <div class="screen" id="monteurRegistrationScreen">
+            <button class="back-btn" onclick="showScreen('welcomeScreen')">← Zurück</button>
+            <h1>📝 Monteur Registrierung</h1>
+            
+            <div class="registration-form">
+                <form id="registrationForm">
+                    <div class="form-group">
+                        <label for="regName">Name:</label>
+                        <input type="text" id="regName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPostalCode">Postleitzahl:</label>
+                        <input type="text" id="regPostalCode" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regServiceArea">Einsatzgebiet:</label>
+                        <input type="text" id="regServiceArea" placeholder="z.B. Wien, Graz, Zürich" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regCountry">Land:</label>
+                        <select id="regCountry" required>
+                            <option value="">-- Bitte wählen --</option>
+                            <option value="AT">🇦🇹 Österreich</option>
+                            <option value="CH">🇨🇭 Schweiz</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPhone">Telefonnummer:</label>
+                        <input type="tel" id="regPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regBranch">Branche:</label>
+                        <select id="regBranch" required>
+                            <option value="">-- Bitte wählen --</option>
+                            <option value="rohrreinigung">🔧 Rohrreinigung</option>
+                            <option value="schlüsseldienst">🔑 Schlüsseldienst</option>
+                            <option value="schädlingsbekämpfung">🐛 Schädlingsbekämpfung</option>
+                            <option value="sanitär">🚿 Sanitär</option>
+                            <option value="elektrik">⚡ Elektrik</option>
+                            <option value="heizung">🔥 Heizung</option>
+                            <option value="sonstiges">🛠️ Sonstiges</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">✅ Registrierung abschicken</button>
+                </form>
+            </div>
         </div>
 
         <!-- Dashboard Screen -->
         <div class="screen" id="dashboardScreen">
-            <button class="back-btn" onclick="logout()">← Ausloggen</button>
-            <h1>Willkommen <span id="userRole"></span></h1>
+            <button class="back-btn" onclick="showScreen('welcomeScreen')">← Zurück</button>
+            <h1>👋 Willkommen <span id="userRole"></span></h1>
             
             <div class="stats-grid">
                 <div class="stat-card">
@@ -429,7 +533,7 @@
             </div>
 
             <div class="menu-grid" id="menuGrid">
-                <!-- Menu items will be populated by JavaScript -->
+                <!-- Menu items populated by JavaScript -->
             </div>
         </div>
 
@@ -437,69 +541,81 @@
         <div class="screen" id="newOrderScreen">
             <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
             <h1>🆕 Neuer Auftrag</h1>
+            
             <form id="newOrderForm">
                 <div class="form-group">
-                    <label for="country">Land wählen:</label>
+                    <label for="country">Land:</label>
                     <select id="country" required>
+                        <option value="">-- Bitte wählen --</option>
                         <option value="AT">🇦🇹 Österreich</option>
                         <option value="CH">🇨🇭 Schweiz</option>
-                        <option value="DE">🇩🇪 Deutschland</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
-                    <label for="industry">Branche wählen:</label>
+                    <label for="industry">Branche:</label>
                     <select id="industry" required>
+                        <option value="">-- Bitte wählen --</option>
                         <option value="rohrreinigung">🔧 Rohrreinigung</option>
                         <option value="schlüsseldienst">🔑 Schlüsseldienst</option>
                         <option value="schädlingsbekämpfung">🐛 Schädlingsbekämpfung</option>
                         <option value="sanitär">🚿 Sanitär</option>
                         <option value="elektrik">⚡ Elektrik</option>
                         <option value="heizung">🔥 Heizung</option>
+                        <option value="sonstiges">🛠️ Sonstiges</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
                     <label for="customerName">Kundenname:</label>
                     <input type="text" id="customerName" required>
                 </div>
+                
                 <div class="form-group">
-                    <label for="customerAddress">Adresse:</label>
-                    <input type="text" id="customerAddress" required>
+                    <label for="customerAddress">Vollständige Adresse:</label>
+                    <input type="text" id="customerAddress" placeholder="Straße, Hausnummer, PLZ, Ort" required>
                 </div>
+                
                 <div class="form-group">
-                    <label for="customerPhone">Telefon:</label>
+                    <label for="customerPhone">Telefonnummer:</label>
                     <input type="tel" id="customerPhone" required>
                 </div>
+                
                 <div class="form-group">
                     <label for="orderDate">Datum:</label>
                     <input type="date" id="orderDate" required>
                 </div>
+                
                 <div class="form-group">
                     <label for="orderTime">Uhrzeit:</label>
                     <input type="time" id="orderTime" required>
                 </div>
-                <div class="form-group">
-                    <label for="description">Beschreibung:</label>
-                    <textarea id="description" rows="3" placeholder="Beschreibung des Problems..."></textarea>
-                </div>
+                
                 <div class="form-group">
                     <label for="priority">Priorität:</label>
-                    <select id="priority">
+                    <select id="priority" required>
                         <option value="normal">🟢 Normal</option>
                         <option value="hoch">🟡 Hoch</option>
                         <option value="notfall">🔴 Notfall</option>
                     </select>
                 </div>
-                <button type="submit" class="btn">📨 Auftrag speichern</button>
+                
+                <div class="form-group">
+                    <label for="description">Zusatzinformationen:</label>
+                    <textarea id="description" rows="3" placeholder="Beschreibung des Problems, Besonderheiten..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn">📨 Auftrag erstellen</button>
             </form>
         </div>
 
         <!-- Search Orders Screen -->
         <div class="screen" id="searchOrdersScreen">
             <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
-            <h1>🔍 Auftrag suchen</h1>
+            <h1>🔍 Aufträge suchen</h1>
             
             <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="Suche nach Auftragsnummer, Name oder Adresse...">
+                <input type="text" id="searchInput" class="search-input" placeholder="Suche nach Auftragsnummer, Name, Adresse...">
                 <button class="search-btn" onclick="searchOrders()">🔍</button>
             </div>
 
@@ -508,7 +624,6 @@
                     <option value="">Alle Länder</option>
                     <option value="AT">🇦🇹 Österreich</option>
                     <option value="CH">🇨🇭 Schweiz</option>
-                    <option value="DE">🇩🇪 Deutschland</option>
                 </select>
                 <select id="filterIndustry">
                     <option value="">Alle Branchen</option>
@@ -516,12 +631,17 @@
                     <option value="schlüsseldienst">Schlüsseldienst</option>
                     <option value="schädlingsbekämpfung">Schädlingsbekämpfung</option>
                     <option value="sanitär">Sanitär</option>
+                    <option value="elektrik">Elektrik</option>
+                    <option value="heizung">Heizung</option>
                 </select>
                 <select id="filterStatus">
                     <option value="">Alle Status</option>
-                    <option value="offen">Offen</option>
+                    <option value="neu">Neu</option>
                     <option value="in_bearbeitung">In Bearbeitung</option>
+                    <option value="warten_auf_monteur">Warten auf Monteur</option>
                     <option value="abgeschlossen">Abgeschlossen</option>
+                    <option value="nicht_bezahlt">Nicht bezahlt</option>
+                    <option value="storniert">Storniert</option>
                 </select>
             </div>
 
@@ -542,33 +662,40 @@
                 <div class="card">
                     <div class="card-title" id="orderTitle"></div>
                     <div class="card-text" id="orderDetails"></div>
+                    <div id="mapsLink"></div>
                 </div>
 
                 <form id="revenueForm">
                     <div class="form-group">
                         <label for="amount">Betrag (€):</label>
-                        <input type="number" id="amount" step="0.01" required>
+                        <input type="number" id="amount" step="0.01" min="0" required>
                     </div>
+                    
                     <div class="form-group">
                         <label for="paymentMethod">Zahlungsart:</label>
                         <select id="paymentMethod" required>
+                            <option value="">-- Bitte wählen --</option>
                             <option value="bar">💵 Bar</option>
                             <option value="überweisung">🏦 Überweisung</option>
                             <option value="ec">💳 EC-Karte</option>
                             <option value="twint">📱 Twint</option>
                         </select>
                     </div>
+                    
                     <div class="form-group">
-                        <label>Screenshot / Foto hochladen:</label>
+                        <label>Rechnung/Beleg hochladen:</label>
                         <div class="upload-area" onclick="document.getElementById('fileUpload').click()">
                             <div>📸 Klicken zum Hochladen</div>
-                            <div style="font-size: 12px; color: #666; margin-top: 8px;">oder Datei hier hineinziehen</div>
+                            <div style="font-size: 12px; color: var(--tg-theme-hint-color, #666); margin-top: 4px;">
+                                Foto der Rechnung oder des Belegs
+                            </div>
                         </div>
-                        <input type="file" id="fileUpload" accept="image/*" style="display: none;">
+                        <input type="file" id="fileUpload" accept="image/*,.pdf" style="display: none;">
                     </div>
+                    
                     <button type="submit" class="btn btn-success">✅ Umsatz melden</button>
-                    <button type="button" class="btn btn-danger" onclick="markOrderUnpaid()">❌ Auftrag nicht bezahlt</button>
-                    <button type="button" class="btn btn-warning" onclick="cancelOrder()">🚫 Auftrag stornieren</button>
+                    <button type="button" class="btn btn-danger" onclick="markOrderUnpaid()">❌ Nicht bezahlt</button>
+                    <button type="button" class="btn btn-warning" onclick="cancelOrder()">🚫 Stornieren</button>
                 </form>
             </div>
         </div>
@@ -576,15 +703,20 @@
         <!-- My Orders Screen -->
         <div class="screen" id="myOrdersScreen">
             <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
-            <h1>👷 Meine Aufträge</h1>
+            <h1>📋 Meine Aufträge</h1>
             
             <div style="margin-bottom: 20px;">
-                <h3 style="color: #dc3545; margin-bottom: 10px;">Offen:</h3>
+                <h3 style="color: #dc3545; margin-bottom: 10px; font-size: 16px;">🔴 Offene Aufträge:</h3>
                 <div id="openOrdersList"></div>
             </div>
 
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #ffc107; margin-bottom: 10px; font-size: 16px;">🟡 In Bearbeitung:</h3>
+                <div id="inProgressOrdersList"></div>
+            </div>
+
             <div>
-                <h3 style="color: #28a745; margin-bottom: 10px;">Abgeschlossen:</h3>
+                <h3 style="color: #28a745; margin-bottom: 10px; font-size: 16px;">✅ Abgeschlossen:</h3>
                 <div id="completedOrdersList"></div>
             </div>
         </div>
@@ -592,42 +724,135 @@
         <!-- Daily Report Screen -->
         <div class="screen" id="dailyReportScreen">
             <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
-            <h1>📊 Tagesreport</h1>
+            <h1>📊 Tagesbericht</h1>
             
             <div class="filter-row">
+                <select id="reportDate">
+                    <option value="">Heute</option>
+                    <option value="yesterday">Gestern</option>
+                    <option value="week">Diese Woche</option>
+                    <option value="month">Dieser Monat</option>
+                </select>
                 <select id="reportMonteur">
                     <option value="">Alle Monteure</option>
-                    <option value="thomas">Thomas</option>
-                    <option value="anna">Anna</option>
-                    <option value="max">Max</option>
-                </select>
-                <select id="reportIndustry">
-                    <option value="">Alle Branchen</option>
-                    <option value="rohrreinigung">Rohrreinigung</option>
-                    <option value="sanitär">Sanitär</option>
-                    <option value="schlüsseldienst">Schlüsseldienst</option>
+                    <!-- Populated by JavaScript -->
                 </select>
                 <select id="reportCountry">
                     <option value="">Alle Länder</option>
-                    <option value="AT">Österreich</option>
-                    <option value="CH">Schweiz</option>
-                    <option value="DE">Deutschland</option>
+                    <option value="AT">🇦🇹 Österreich</option>
+                    <option value="CH">🇨🇭 Schweiz</option>
                 </select>
             </div>
 
-            <button class="btn" onclick="generateReport()">📑 Report generieren</button>
+            <button class="btn" onclick="generateReport()">📑 Bericht generieren</button>
             
             <div id="reportResults"></div>
         </div>
 
-        <!-- User Management Screen -->
-        <div class="screen" id="userManagementScreen">
+        <!-- Admin Dashboard Screen -->
+        <div class="screen" id="adminDashboardScreen">
             <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
-            <h1>⚙️ Nutzerverwaltung & Bewertungen</h1>
+            <h1>⚙️ Admin Dashboard</h1>
             
-            <div id="usersList"></div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="pendingApprovals">3</div>
+                    <div class="stat-label">Wartende Genehmigungen</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeMonteurs">12</div>
+                    <div class="stat-label">Aktive Monteure</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="todayOrders">8</div>
+                    <div class="stat-label">Heute erstellt</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRevenue">€4,250</div>
+                    <div class="stat-label">Gesamtumsatz</div>
+                </div>
+            </div>
+
+            <div class="menu-grid">
+                <div class="menu-item" onclick="showScreen('approvalScreen')">
+                    <div class="menu-icon">✅</div>
+                    <div>Genehmigungen</div>
+                </div>
+                <div class="menu-item" onclick="showScreen('monteurManagementScreen')">
+                    <div class="menu-icon">👥</div>
+                    <div>Monteure</div>
+                </div>
+                <div class="menu-item" onclick="showScreen('dailyReportScreen')">
+                    <div class="menu-icon">📊</div>
+                    <div>Berichte</div>
+                </div>
+                <div class="menu-item" onclick="showScreen('settingsScreen')">
+                    <div class="menu-icon">⚙️</div>
+                    <div>Einstellungen</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Push Notification Screen -->
+        <div class="screen" id="pushNotificationScreen">
+            <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
+            <h1>📱 Push-Nachricht senden</h1>
             
-            <button class="btn" onclick="showAddUserForm()">➕ Neuen Benutzer hinzufügen</button>
+            <form id="pushForm">
+                <div class="form-group">
+                    <label for="pushRecipient">Empfänger:</label>
+                    <select id="pushRecipient" required>
+                        <option value="">-- Bitte wählen --</option>
+                        <option value="admin">Admin</option>
+                        <option value="all_monteurs">Alle Monteure</option>
+                        <option value="specific">Bestimmten Monteur</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="specificMonteurGroup" style="display: none;">
+                    <label for="specificMonteur">Monteur auswählen:</label>
+                    <select id="specificMonteur">
+                        <!-- Populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pushMessage">Nachricht:</label>
+                    <textarea id="pushMessage" rows="3" placeholder="z.B. Kunde wartet! Bitte sofort zum Einsatzort." required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pushPriority">Priorität:</label>
+                    <select id="pushPriority" required>
+                        <option value="normal">🟢 Normal</option>
+                        <option value="high">🟡 Hoch</option>
+                        <option value="urgent">🔴 Dringend</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn">📨 Nachricht senden</button>
+            </form>
+        </div>
+
+        <!-- Revenue Reminder Settings -->
+        <div class="screen" id="reminderSettingsScreen">
+            <button class="back-btn" onclick="showScreen('dashboardScreen')">← Zurück</button>
+            <h1>⏰ Erinnerungseinstellungen</h1>
+            
+            <div class="reminder-settings">
+                <h3>Tägliche Umsatzerinnerung</h3>
+                <div class="form-group">
+                    <label for="reminderTime">Erinnerungszeit:</label>
+                    <input type="time" id="reminderTime" value="23:30">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="reminderEnabled" checked>
+                        Erinnerungen aktivieren
+                    </label>
+                </div>
+                <button class="btn" onclick="saveReminderSettings()">💾 Einstellungen speichern</button>
+            </div>
         </div>
 
         <!-- Loading Screen -->
@@ -638,126 +863,209 @@
     </div>
 
     <script>
+        // Telegram Web App Integration
+        const tg = window.Telegram?.WebApp;
+        
         // Global variables
         let currentUser = null;
         let orders = [];
-        let users = [];
+        let monteurs = [];
+        let userData = {};
+        let pushNotifications = [];
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
+            initializeTelegramWebApp();
             initializeApp();
         });
 
+        function initializeTelegramWebApp() {
+            if (tg) {
+                tg.ready();
+                tg.expand();
+                
+                // Get user data from Telegram
+                if (tg.initDataUnsafe?.user) {
+                    userData = tg.initDataUnsafe.user;
+                    console.log('Telegram user data:', userData);
+                }
+                
+                // Set up back button
+                tg.BackButton.onClick(() => {
+                    const currentScreen = document.querySelector('.screen.active');
+                    if (currentScreen.id === 'dashboardScreen') {
+                        showScreen('welcomeScreen');
+                    } else if (currentScreen.id === 'welcomeScreen') {
+                        tg.close();
+                    } else {
+                        showScreen('dashboardScreen');
+                    }
+                });
+                
+                // Set up main button
+                tg.MainButton.setText('Speichern');
+                tg.MainButton.hide();
+            }
+        }
+
         function initializeApp() {
-            // Initialize sample data
             initializeSampleData();
             
             // Set today's date as default
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('orderDate').value = today;
+            const dateInput = document.getElementById('orderDate');
+            if (dateInput) {
+                dateInput.value = today;
+            }
             
             // Add event listeners
-            document.getElementById('loginForm').addEventListener('submit', handleLogin);
-            document.getElementById('newOrderForm').addEventListener('submit', handleNewOrder);
-            document.getElementById('revenueForm').addEventListener('submit', handleRevenueReport);
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            // Form submissions
+            document.getElementById('registrationForm')?.addEventListener('submit', handleRegistration);
+            document.getElementById('newOrderForm')?.addEventListener('submit', handleNewOrder);
+            document.getElementById('revenueForm')?.addEventListener('submit', handleRevenueReport);
+            document.getElementById('pushForm')?.addEventListener('submit', handlePushNotification);
             
             // File upload handling
             const uploadArea = document.querySelector('.upload-area');
             const fileUpload = document.getElementById('fileUpload');
             
-            uploadArea.addEventListener('dragover', handleDragOver);
-            uploadArea.addEventListener('drop', handleDrop);
-            fileUpload.addEventListener('change', handleFileSelect);
+            if (uploadArea && fileUpload) {
+                uploadArea.addEventListener('dragover', handleDragOver);
+                uploadArea.addEventListener('drop', handleDrop);
+                fileUpload.addEventListener('change', handleFileSelect);
+            }
             
             // Search functionality
-            document.getElementById('searchInput').addEventListener('input', searchOrders);
-            document.getElementById('filterCountry').addEventListener('change', searchOrders);
-            document.getElementById('filterIndustry').addEventListener('change', searchOrders);
-            document.getElementById('filterStatus').addEventListener('change', searchOrders);
+            document.getElementById('searchInput')?.addEventListener('input', debounce(searchOrders, 300));
+            document.getElementById('filterCountry')?.addEventListener('change', searchOrders);
+            document.getElementById('filterIndustry')?.addEventListener('change', searchOrders);
+            document.getElementById('filterStatus')?.addEventListener('change', searchOrders);
+            
+            // Push notification recipient change
+            document.getElementById('pushRecipient')?.addEventListener('change', handlePushRecipientChange);
         }
 
         function initializeSampleData() {
-            // Sample orders
+            // Sample orders with enhanced data
             orders = [
                 {
                     id: 4711,
-                    customer: "Max M.",
-                    address: "1230 Wien",
+                    customer: "Max Mustermann",
+                    address: "Mariahilfer Straße 123, 1060 Wien",
                     industry: "rohrreinigung",
                     country: "AT",
-                    status: "offen",
-                    date: "2025-07-09",
+                    status: "neu",
+                    date: "2025-01-15",
                     time: "14:00",
-                    monteur: "thomas",
-                    priority: "normal",
+                    monteur: null,
+                    priority: "notfall",
                     phone: "+43 1 123456",
-                    description: "Verstopfte Abwasserleitung im Keller"
+                    description: "Verstopfte Abwasserleitung im Keller, Rückstau in der Wohnung",
+                    createdAt: new Date().toISOString(),
+                    mapsLink: generateMapsLink("Mariahilfer Straße 123, 1060 Wien")
                 },
                 {
                     id: 4710,
-                    customer: "Anna K.",
-                    address: "1220 Wien",
+                    customer: "Anna Koller",
+                    address: "Bahnhofstraße 45, 8010 Graz",
                     industry: "sanitär",
                     country: "AT",
-                    status: "abgeschlossen",
-                    date: "2025-07-08",
+                    status: "in_bearbeitung",
+                    date: "2025-01-15",
                     time: "10:30",
-                    monteur: "anna",
+                    monteur: "thomas_mueller",
                     priority: "hoch",
-                    phone: "+43 1 789012",
-                    description: "Tropfender Wasserhahn"
+                    phone: "+43 316 789012",
+                    description: "Tropfender Wasserhahn in der Küche",
+                    createdAt: new Date(Date.now() - 86400000).toISOString(),
+                    mapsLink: generateMapsLink("Bahnhofstraße 45, 8010 Graz")
+                },
+                {
+                    id: 4709,
+                    customer: "Peter Schneider",
+                    address: "Bahnhofstrasse 12, 8001 Zürich",
+                    industry: "schlüsseldienst",
+                    country: "CH",
+                    status: "abgeschlossen",
+                    date: "2025-01-14",
+                    time: "16:00",
+                    monteur: "sandra_weber",
+                    priority: "normal",
+                    phone: "+41 44 123456",
+                    description: "Schlüssel abgebrochen im Schloss",
+                    createdAt: new Date(Date.now() - 172800000).toISOString(),
+                    completedAt: new Date(Date.now() - 86400000).toISOString(),
+                    amount: 180.50,
+                    paymentMethod: "twint",
+                    mapsLink: generateMapsLink("Bahnhofstrasse 12, 8001 Zürich")
                 }
             ];
 
-            // Sample users
-            users = [
+            // Sample monteurs
+            monteurs = [
                 {
-                    id: 1,
-                    name: "Thomas",
-                    role: "monteur",
+                    id: "thomas_mueller",
+                    name: "Thomas Müller",
+                    phone: "+43 664 123456",
+                    country: "AT",
+                    serviceArea: "Wien, Niederösterreich",
+                    branches: ["rohrreinigung", "sanitär"],
                     rating: 4.8,
                     completedOrders: 156,
-                    avatar: "T"
+                    status: "aktiv",
+                    registeredAt: new Date(Date.now() - 86400000 * 30).toISOString()
                 },
                 {
-                    id: 2,
-                    name: "Anna",
-                    role: "monteur",
+                    id: "sandra_weber",
+                    name: "Sandra Weber",
+                    phone: "+41 79 987654",
+                    country: "CH",
+                    serviceArea: "Zürich, Zug",
+                    branches: ["schlüsseldienst", "sicherheit"],
                     rating: 4.9,
                     completedOrders: 203,
-                    avatar: "A"
+                    status: "aktiv",
+                    registeredAt: new Date(Date.now() - 86400000 * 60).toISOString()
                 },
                 {
-                    id: 3,
-                    name: "Jonas",
-                    role: "agent",
+                    id: "mario_rossi",
+                    name: "Mario Rossi",
+                    phone: "+43 699 555444",
+                    country: "AT",
+                    serviceArea: "Graz, Steiermark",
+                    branches: ["elektrik", "heizung"],
                     rating: 4.7,
                     completedOrders: 89,
-                    avatar: "J"
+                    status: "aktiv",
+                    registeredAt: new Date(Date.now() - 86400000 * 15).toISOString()
                 }
             ];
         }
 
-        function handleLogin(e) {
-            e.preventDefault();
-            const role = document.getElementById('role').value;
-            const password = document.getElementById('password').value;
-            
-            // Simple authentication (in real app, use proper authentication)
-            const validCredentials = {
-                admin: "admin123",
-                agent: "agent123",
-                monteur: "monteur123"
+        function generateMapsLink(address) {
+            const encodedAddress = encodeURIComponent(address);
+            return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+        }
+
+        function selectRole(role) {
+            currentUser = { 
+                role: role, 
+                name: getNameByRole(role),
+                telegramId: userData.id || null
             };
             
-            if (validCredentials[role] === password) {
-                currentUser = { role: role, name: getNameByRole(role) };
-                document.getElementById('userRole').textContent = currentUser.name;
-                showScreen('dashboardScreen');
-                setupMenuForRole(role);
-                updateDashboardStats();
-            } else {
-                document.getElementById('loginError').style.display = 'block';
+            document.getElementById('userRole').textContent = currentUser.name;
+            showScreen('dashboardScreen');
+            setupMenuForRole(role);
+            updateDashboardStats();
+            
+            // Show back button in Telegram
+            if (tg) {
+                tg.BackButton.show();
             }
         }
 
@@ -775,22 +1083,23 @@
             const menuItems = {
                 admin: [
                     { id: 'newOrderScreen', icon: '🆕', text: 'Neuer Auftrag' },
-                    { id: 'searchOrdersScreen', icon: '🔍', text: 'Auftrag suchen' },
-                    { id: 'dailyReportScreen', icon: '📊', text: 'Tagesreport' },
-                    { id: 'userManagementScreen', icon: '⚙️', text: 'Benutzerverwaltung' },
-                    { id: 'reportRevenueScreen', icon: '💰', text: 'Umsatz melden' },
-                    { id: 'myOrdersScreen', icon: '👷', text: 'Alle Aufträge' }
+                    { id: 'searchOrdersScreen', icon: '🔍', text: 'Aufträge suchen' },
+                    { id: 'adminDashboardScreen', icon: '⚙️', text: 'Admin Dashboard' },
+                    { id: 'dailyReportScreen', icon: '📊', text: 'Berichte' },
+                    { id: 'pushNotificationScreen', icon: '📱', text: 'Push-Nachrichten' },
+                    { id: 'myOrdersScreen', icon: '📋', text: 'Alle Aufträge' }
                 ],
                 agent: [
                     { id: 'newOrderScreen', icon: '🆕', text: 'Neuer Auftrag' },
-                    { id: 'searchOrdersScreen', icon: '🔍', text: 'Auftrag suchen' },
-                    { id: 'myOrdersScreen', icon: '👷', text: 'Meine Aufträge' },
-                    { id: 'dailyReportScreen', icon: '📊', text: 'Tagesreport' }
+                    { id: 'searchOrdersScreen', icon: '🔍', text: 'Aufträge suchen' },
+                    { id: 'myOrdersScreen', icon: '📋', text: 'Meine Aufträge' },
+                    { id: 'pushNotificationScreen', icon: '📱', text: 'Push-Nachrichten' }
                 ],
                 monteur: [
-                    { id: 'myOrdersScreen', icon: '👷', text: 'Meine Aufträge' },
+                    { id: 'myOrdersScreen', icon: '📋', text: 'Meine Aufträge' },
                     { id: 'reportRevenueScreen', icon: '💰', text: 'Umsatz melden' },
-                    { id: 'searchOrdersScreen', icon: '🔍', text: 'Auftrag suchen' }
+                    { id: 'searchOrdersScreen', icon: '🔍', text: 'Aufträge suchen' },
+                    { id: 'reminderSettingsScreen', icon: '⏰', text: 'Erinnerungen' }
                 ]
             };
 
@@ -814,65 +1123,125 @@
             });
             
             // Show selected screen
-            document.getElementById(screenId).classList.add('active');
-            
-            // Load screen-specific data
-            if (screenId === 'myOrdersScreen') {
-                loadMyOrders();
-            } else if (screenId === 'userManagementScreen') {
-                loadUserManagement();
-            } else if (screenId === 'searchOrdersScreen') {
-                searchOrders();
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+                
+                // Load screen-specific data
+                loadScreenData(screenId);
+                
+                // Update Telegram UI
+                updateTelegramUI(screenId);
             }
         }
 
-        function logout() {
-            currentUser = null;
-            document.getElementById('loginForm').reset();
-            document.getElementById('loginError').style.display = 'none';
-            showScreen('loginScreen');
+        function loadScreenData(screenId) {
+            switch(screenId) {
+                case 'myOrdersScreen':
+                    loadMyOrders();
+                    break;
+                case 'searchOrdersScreen':
+                    searchOrders();
+                    break;
+                case 'adminDashboardScreen':
+                    loadAdminDashboard();
+                    break;
+                case 'dailyReportScreen':
+                    populateReportFilters();
+                    break;
+                case 'pushNotificationScreen':
+                    populatePushRecipients();
+                    break;
+            }
+        }
+
+        function updateTelegramUI(screenId) {
+            if (!tg) return;
+            
+            if (screenId === 'welcomeScreen') {
+                tg.BackButton.hide();
+            } else {
+                tg.BackButton.show();
+            }
+            
+            // Update main button based on screen
+            if (screenId === 'newOrderScreen' || screenId === 'reportRevenueScreen') {
+                tg.MainButton.show();
+            } else {
+                tg.MainButton.hide();
+            }
+        }
+
+        function showMonteurRegistration() {
+            showScreen('monteurRegistrationScreen');
+        }
+
+        function handleRegistration(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const registration = {
+                id: generateId(),
+                name: document.getElementById('regName').value,
+                postalCode: document.getElementById('regPostalCode').value,
+                serviceArea: document.getElementById('regServiceArea').value,
+                country: document.getElementById('regCountry').value,
+                phone: document.getElementById('regPhone').value,
+                branch: document.getElementById('regBranch').value,
+                status: "pending",
+                registeredAt: new Date().toISOString(),
+                telegramId: userData.id || null
+            };
+            
+            monteurs.push(registration);
+            
+            showSuccess('Registrierung erfolgreich eingereicht! Sie werden nach Prüfung durch den Admin benachrichtigt.');
+            sendTelegramNotification('admin', `Neue Monteur-Registrierung: ${registration.name} (${registration.country})`);
+            
+            e.target.reset();
+            setTimeout(() => showScreen('welcomeScreen'), 2000);
         }
 
         function handleNewOrder(e) {
             e.preventDefault();
             
-            const formData = new FormData(e.target);
             const newOrder = {
-                id: Math.floor(Math.random() * 10000),
+                id: generateId(),
                 customer: document.getElementById('customerName').value,
                 address: document.getElementById('customerAddress').value,
                 industry: document.getElementById('industry').value,
                 country: document.getElementById('country').value,
-                status: 'offen',
+                status: 'neu',
                 date: document.getElementById('orderDate').value,
                 time: document.getElementById('orderTime').value,
+                priority: document.getElementById('priority').value,
                 phone: document.getElementById('customerPhone').value,
                 description: document.getElementById('description').value,
-                priority: document.getElementById('priority').value,
-                monteur: null
+                createdAt: new Date().toISOString(),
+                createdBy: currentUser.telegramId,
+                monteur: null,
+                mapsLink: generateMapsLink(document.getElementById('customerAddress').value)
             };
             
             orders.push(newOrder);
-            showSuccess('Auftrag erfolgreich erstellt!');
             
-            // Reset form
+            showSuccess('Auftrag erfolgreich erstellt!');
+            sendTelegramNotification('admin', `Neuer Auftrag #${newOrder.id}: ${newOrder.customer} (${newOrder.country})`);
+            
             e.target.reset();
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('orderDate').value = today;
             
-            // Update stats
             updateDashboardStats();
             
-            setTimeout(() => {
-                showScreen('dashboardScreen');
-            }, 2000);
+            setTimeout(() => showScreen('dashboardScreen'), 2000);
         }
 
         function searchOrders() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const countryFilter = document.getElementById('filterCountry').value;
-            const industryFilter = document.getElementById('filterIndustry').value;
-            const statusFilter = document.getElementById('filterStatus').value;
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const countryFilter = document.getElementById('filterCountry')?.value || '';
+            const industryFilter = document.getElementById('filterIndustry')?.value || '';
+            const statusFilter = document.getElementById('filterStatus')?.value || '';
             
             let filteredOrders = orders.filter(order => {
                 const matchesSearch = !searchTerm || 
@@ -893,8 +1262,10 @@
         function displaySearchResults(orders) {
             const resultsContainer = document.getElementById('searchResults');
             
+            if (!resultsContainer) return;
+            
             if (orders.length === 0) {
-                resultsContainer.innerHTML = '<p style="text-align: center; color: #666;">Keine Aufträge gefunden.</p>';
+                resultsContainer.innerHTML = '<p style="text-align: center; color: var(--tg-theme-hint-color, #666); font-size: 14px;">Keine Aufträge gefunden.</p>';
                 return;
             }
             
@@ -904,13 +1275,14 @@
                 orderCard.className = 'card';
                 orderCard.innerHTML = `
                     <div class="card-title">
-                        ${getPriorityIcon(order.priority)} #${order.id} - ${order.customer}
+                        ${getPriorityBadge(order.priority)} #${order.id} - ${order.customer}
                     </div>
                     <div class="card-text">
-                        📍 ${order.address}<br>
+                        <span class="country-flag">${getCountryFlag(order.country)}</span>
+                        ${order.address}<br>
                         🏢 ${getIndustryName(order.industry)}<br>
                         📅 ${formatDate(order.date)} um ${order.time}<br>
-                        📊 Status: ${getStatusBadge(order.status)}
+                        📞 ${order.phone}
                     </div>
                 `;
                 orderCard.onclick = () => showOrderDetails(order);
@@ -926,9 +1298,16 @@
                 document.getElementById('selectedOrder').style.display = 'block';
                 document.getElementById('orderTitle').textContent = `#${order.id} - ${order.customer}`;
                 document.getElementById('orderDetails').innerHTML = `
-                    📍 ${order.address}<br>
+                    <span class="country-flag">${getCountryFlag(order.country)}</span>
+                    ${order.address}<br>
                     🏢 ${getIndustryName(order.industry)}<br>
-                    📅 ${formatDate(order.date)} um ${order.time}
+                    📅 ${formatDate(order.date)} um ${order.time}<br>
+                    📞 ${order.phone}
+                `;
+                document.getElementById('mapsLink').innerHTML = `
+                    <a href="${order.mapsLink}" target="_blank" class="maps-link">
+                        📍 Google Maps öffnen
+                    </a>
                 `;
             } else {
                 showError('Auftrag nicht gefunden!');
@@ -938,27 +1317,86 @@
 
         function handleRevenueReport(e) {
             e.preventDefault();
+            
             const orderId = document.getElementById('revenueSearchInput').value;
-            const amount = document.getElementById('amount').value;
+            const amount = parseFloat(document.getElementById('amount').value);
             const paymentMethod = document.getElementById('paymentMethod').value;
             
-            // Update order status
             const order = orders.find(o => o.id.toString() === orderId);
             if (order) {
                 order.status = 'abgeschlossen';
-                order.amount = parseFloat(amount);
+                order.amount = amount;
                 order.paymentMethod = paymentMethod;
-                order.completedDate = new Date().toISOString();
+                order.completedAt = new Date().toISOString();
+                order.completedBy = currentUser.telegramId;
+                
+                showSuccess(`Umsatz von €${amount.toFixed(2)} erfolgreich gemeldet!`);
+                sendTelegramNotification('admin', `Umsatz gemeldet: #${orderId} - €${amount.toFixed(2)} (${paymentMethod})`);
+                
+                // Reset form
+                e.target.reset();
+                document.getElementById('selectedOrder').style.display = 'none';
+                document.getElementById('revenueSearchInput').value = '';
+                
+                updateDashboardStats();
+            }
+        }
+
+        function handlePushNotification(e) {
+            e.preventDefault();
+            
+            const recipient = document.getElementById('pushRecipient').value;
+            const message = document.getElementById('pushMessage').value;
+            const priority = document.getElementById('pushPriority').value;
+            
+            const notification = {
+                id: generateId(),
+                recipient: recipient,
+                message: message,
+                priority: priority,
+                sender: currentUser.telegramId,
+                sentAt: new Date().toISOString()
+            };
+            
+            pushNotifications.push(notification);
+            
+            // Send actual Telegram notification
+            if (recipient === 'admin') {
+                sendTelegramNotification('admin', `${getPriorityIcon(priority)} ${message}`);
+            } else if (recipient === 'all_monteurs') {
+                monteurs.forEach(monteur => {
+                    sendTelegramNotification(monteur.id, `${getPriorityIcon(priority)} ${message}`);
+                });
+            } else if (recipient === 'specific') {
+                const specificMonteur = document.getElementById('specificMonteur').value;
+                sendTelegramNotification(specificMonteur, `${getPriorityIcon(priority)} ${message}`);
             }
             
-            showSuccess('Umsatz erfolgreich gemeldet!');
-            
-            // Reset form
+            showSuccess('Push-Nachricht erfolgreich gesendet!');
             e.target.reset();
-            document.getElementById('selectedOrder').style.display = 'none';
-            document.getElementById('revenueSearchInput').value = '';
+            document.getElementById('specificMonteurGroup').style.display = 'none';
+        }
+
+        function handlePushRecipientChange(e) {
+            const specificGroup = document.getElementById('specificMonteurGroup');
+            if (e.target.value === 'specific') {
+                specificGroup.style.display = 'block';
+                populateSpecificMonteurSelect();
+            } else {
+                specificGroup.style.display = 'none';
+            }
+        }
+
+        function populateSpecificMonteurSelect() {
+            const select = document.getElementById('specificMonteur');
+            select.innerHTML = '<option value="">-- Monteur wählen --</option>';
             
-            updateDashboardStats();
+            monteurs.filter(m => m.status === 'aktiv').forEach(monteur => {
+                const option = document.createElement('option');
+                option.value = monteur.id;
+                option.textContent = `${monteur.name} (${monteur.country})`;
+                select.appendChild(option);
+            });
         }
 
         function markOrderUnpaid() {
@@ -967,7 +1405,13 @@
             
             if (order) {
                 order.status = 'nicht_bezahlt';
+                order.markedUnpaidAt = new Date().toISOString();
+                order.markedUnpaidBy = currentUser.telegramId;
+                
                 showSuccess('Auftrag als nicht bezahlt markiert!');
+                sendTelegramNotification('admin', `Auftrag nicht bezahlt: #${orderId} - ${order.customer}`);
+                
+                updateDashboardStats();
             }
         }
 
@@ -977,23 +1421,33 @@
             
             if (order) {
                 order.status = 'storniert';
+                order.cancelledAt = new Date().toISOString();
+                order.cancelledBy = currentUser.telegramId;
+                
                 showSuccess('Auftrag wurde storniert!');
+                sendTelegramNotification('admin', `Auftrag storniert: #${orderId} - ${order.customer}`);
+                
+                updateDashboardStats();
             }
         }
 
         function loadMyOrders() {
-            const openOrders = orders.filter(o => o.status === 'offen');
+            const openOrders = orders.filter(o => o.status === 'neu');
+            const inProgressOrders = orders.filter(o => o.status === 'in_bearbeitung');
             const completedOrders = orders.filter(o => o.status === 'abgeschlossen');
             
-            displayOrdersList('openOrdersList', openOrders, true);
-            displayOrdersList('completedOrdersList', completedOrders, false);
+            displayOrdersList('openOrdersList', openOrders, 'open');
+            displayOrdersList('inProgressOrdersList', inProgressOrders, 'progress');
+            displayOrdersList('completedOrdersList', completedOrders, 'completed');
         }
 
-        function displayOrdersList(containerId, orders, showCompleteButton) {
+        function displayOrdersList(containerId, orders, type) {
             const container = document.getElementById(containerId);
             
+            if (!container) return;
+            
             if (orders.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #666;">Keine Aufträge gefunden.</p>';
+                container.innerHTML = '<p style="text-align: center; color: var(--tg-theme-hint-color, #666); font-size: 14px;">Keine Aufträge gefunden.</p>';
                 return;
             }
             
@@ -1003,41 +1457,84 @@
                 orderCard.className = 'card';
                 orderCard.innerHTML = `
                     <div class="card-title">
-                        ${getPriorityIcon(order.priority)} #${order.id} - ${order.customer}
+                        ${getPriorityBadge(order.priority)} #${order.id} - ${order.customer}
                     </div>
                     <div class="card-text">
-                        📍 ${order.address}<br>
+                        <span class="country-flag">${getCountryFlag(order.country)}</span>
+                        ${order.address}<br>
                         🏢 ${getIndustryName(order.industry)}<br>
-                        📅 ${formatDate(order.date)} um ${order.time}
-                        ${showCompleteButton ? `<br><button class="btn btn-success" style="margin-top: 10px; width: auto; padding: 8px 16px;" onclick="completeOrder(${order.id})">🧾 Abschließen</button>` : ''}
+                        📅 ${formatDate(order.date)} um ${order.time}<br>
+                        📞 ${order.phone}
+                        ${type === 'open' ? `<br><button class="btn btn-success" style="margin-top: 10px; width: auto; padding: 8px 16px; font-size: 14px;" onclick="acceptOrder(${order.id})">✅ Annehmen</button>` : ''}
+                        ${type === 'progress' ? `<br><button class="btn btn-warning" style="margin-top: 10px; width: auto; padding: 8px 16px; font-size: 14px;" onclick="completeOrder(${order.id})">🧾 Abschließen</button>` : ''}
                     </div>
                 `;
+                orderCard.onclick = () => showOrderDetails(order);
                 container.appendChild(orderCard);
             });
         }
 
-        function completeOrder(orderId) {
+        function acceptOrder(orderId) {
             const order = orders.find(o => o.id === orderId);
             if (order) {
-                order.status = 'abgeschlossen';
-                order.completedDate = new Date().toISOString();
-                showSuccess('Auftrag erfolgreich abgeschlossen!');
+                order.status = 'in_bearbeitung';
+                order.monteur = currentUser.telegramId;
+                order.acceptedAt = new Date().toISOString();
+                
+                showSuccess('Auftrag angenommen!');
+                sendTelegramNotification('admin', `Auftrag angenommen: #${orderId} von ${currentUser.name}`);
+                
                 loadMyOrders();
                 updateDashboardStats();
             }
         }
 
+        function completeOrder(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                // Redirect to revenue reporting
+                document.getElementById('revenueSearchInput').value = orderId;
+                showScreen('reportRevenueScreen');
+                searchOrderForRevenue();
+            }
+        }
+
         function generateReport() {
-            const monteurFilter = document.getElementById('reportMonteur').value;
-            const industryFilter = document.getElementById('reportIndustry').value;
-            const countryFilter = document.getElementById('reportCountry').value;
+            const dateFilter = document.getElementById('reportDate')?.value || '';
+            const monteurFilter = document.getElementById('reportMonteur')?.value || '';
+            const countryFilter = document.getElementById('reportCountry')?.value || '';
             
             let filteredOrders = orders.filter(order => {
                 const matchesMonteur = !monteurFilter || order.monteur === monteurFilter;
-                const matchesIndustry = !industryFilter || order.industry === industryFilter;
                 const matchesCountry = !countryFilter || order.country === countryFilter;
                 
-                return matchesMonteur && matchesIndustry && matchesCountry;
+                let matchesDate = true;
+                if (dateFilter) {
+                    const orderDate = new Date(order.date);
+                    const today = new Date();
+                    
+                    switch(dateFilter) {
+                        case 'yesterday':
+                            const yesterday = new Date(today);
+                            yesterday.setDate(today.getDate() - 1);
+                            matchesDate = orderDate.toDateString() === yesterday.toDateString();
+                            break;
+                        case 'week':
+                            const weekAgo = new Date(today);
+                            weekAgo.setDate(today.getDate() - 7);
+                            matchesDate = orderDate >= weekAgo;
+                            break;
+                        case 'month':
+                            const monthAgo = new Date(today);
+                            monthAgo.setMonth(today.getMonth() - 1);
+                            matchesDate = orderDate >= monthAgo;
+                            break;
+                        default:
+                            matchesDate = orderDate.toDateString() === today.toDateString();
+                    }
+                }
+                
+                return matchesMonteur && matchesCountry && matchesDate;
             });
             
             displayReport(filteredOrders);
@@ -1046,9 +1543,30 @@
         function displayReport(orders) {
             const container = document.getElementById('reportResults');
             
+            if (!container) return;
+            
             const totalOrders = orders.length;
             const completedOrders = orders.filter(o => o.status === 'abgeschlossen').length;
             const totalRevenue = orders.filter(o => o.amount).reduce((sum, o) => sum + o.amount, 0);
+            
+            // Revenue by payment method
+            const paymentMethods = {
+                'bar': 0,
+                'überweisung': 0,
+                'ec': 0,
+                'twint': 0
+            };
+            
+            orders.filter(o => o.paymentMethod && o.amount).forEach(o => {
+                paymentMethods[o.paymentMethod] += o.amount;
+            });
+            
+            // Revenue by industry
+            const industries = {};
+            orders.filter(o => o.amount).forEach(o => {
+                if (!industries[o.industry]) industries[o.industry] = 0;
+                industries[o.industry] += o.amount;
+            });
             
             container.innerHTML = `
                 <div style="margin-top: 20px;">
@@ -1070,70 +1588,121 @@
                             <div class="stat-label">Erfolgsquote</div>
                         </div>
                     </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <h3 style="margin-bottom: 12px; font-size: 16px;">Umsatz nach Zahlungsart:</h3>
+                        ${Object.entries(paymentMethods).map(([method, amount]) => 
+                            `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--tg-theme-hint-color, #eee);">
+                                <span>${getPaymentMethodName(method)}</span>
+                                <span>€${amount.toFixed(2)}</span>
+                            </div>`
+                        ).join('')}
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <h3 style="margin-bottom: 12px; font-size: 16px;">Umsatz nach Branche:</h3>
+                        ${Object.entries(industries).map(([industry, amount]) => 
+                            `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--tg-theme-hint-color, #eee);">
+                                <span>${getIndustryName(industry)}</span>
+                                <span>€${amount.toFixed(2)}</span>
+                            </div>`
+                        ).join('')}
+                    </div>
                 </div>
             `;
         }
 
-        function loadUserManagement() {
-            const container = document.getElementById('usersList');
+        function loadAdminDashboard() {
+            const pendingRegistrations = monteurs.filter(m => m.status === 'pending').length;
+            const activeMonteurs = monteurs.filter(m => m.status === 'aktiv').length;
+            const todayOrders = orders.filter(o => {
+                const orderDate = new Date(o.createdAt);
+                const today = new Date();
+                return orderDate.toDateString() === today.toDateString();
+            }).length;
             
-            container.innerHTML = '';
-            users.forEach(user => {
-                const userCard = document.createElement('div');
-                userCard.className = 'user-card';
-                userCard.innerHTML = `
-                    <div class="user-avatar">${user.avatar}</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600;">${user.name}</div>
-                        <div style="color: #666; font-size: 12px;">${user.role}</div>
-                        <div style="color: #666; font-size: 12px;">${user.completedOrders} Aufträge</div>
-                    </div>
-                    <div>
-                        <div class="rating">
-                            ${generateStars(user.rating)}
-                        </div>
-                        <div style="text-align: center; margin-top: 4px; font-size: 12px;">
-                            ${user.rating.toFixed(1)} ⭐
-                        </div>
-                    </div>
-                `;
-                container.appendChild(userCard);
-            });
+            const totalRevenue = orders.filter(o => o.amount).reduce((sum, o) => sum + o.amount, 0);
+            
+            document.getElementById('pendingApprovals').textContent = pendingRegistrations;
+            document.getElementById('activeMonteurs').textContent = activeMonteurs;
+            document.getElementById('todayOrders').textContent = todayOrders;
+            document.getElementById('totalRevenue').textContent = `€${totalRevenue.toFixed(2)}`;
         }
 
-        function generateStars(rating) {
-            let stars = '';
-            for (let i = 1; i <= 5; i++) {
-                if (i <= rating) {
-                    stars += '<span class="star">⭐</span>';
-                } else {
-                    stars += '<span class="star" style="color: #ddd;">⭐</span>';
-                }
+        function populateReportFilters() {
+            const monteurSelect = document.getElementById('reportMonteur');
+            if (monteurSelect) {
+                monteurSelect.innerHTML = '<option value="">Alle Monteure</option>';
+                monteurs.filter(m => m.status === 'aktiv').forEach(monteur => {
+                    const option = document.createElement('option');
+                    option.value = monteur.id;
+                    option.textContent = `${monteur.name} (${monteur.country})`;
+                    monteurSelect.appendChild(option);
+                });
             }
-            return stars;
+        }
+
+        function populatePushRecipients() {
+            const specificSelect = document.getElementById('specificMonteur');
+            if (specificSelect) {
+                specificSelect.innerHTML = '<option value="">-- Monteur wählen --</option>';
+                monteurs.filter(m => m.status === 'aktiv').forEach(monteur => {
+                    const option = document.createElement('option');
+                    option.value = monteur.id;
+                    option.textContent = `${monteur.name} (${monteur.country})`;
+                    specificSelect.appendChild(option);
+                });
+            }
         }
 
         function updateDashboardStats() {
-            const openOrders = orders.filter(o => o.status === 'offen').length;
+            const openOrders = orders.filter(o => o.status === 'neu' || o.status === 'in_bearbeitung').length;
             const completedToday = orders.filter(o => 
                 o.status === 'abgeschlossen' && 
-                o.completedDate && 
-                new Date(o.completedDate).toDateString() === new Date().toDateString()
+                o.completedAt && 
+                new Date(o.completedAt).toDateString() === new Date().toDateString()
             ).length;
             
             const todayRevenue = orders.filter(o => 
                 o.amount && 
-                o.completedDate && 
-                new Date(o.completedDate).toDateString() === new Date().toDateString()
+                o.completedAt && 
+                new Date(o.completedAt).toDateString() === new Date().toDateString()
             ).reduce((sum, o) => sum + o.amount, 0);
+            
+            const avgRating = monteurs.filter(m => m.status === 'aktiv').reduce((sum, m) => sum + m.rating, 0) / monteurs.filter(m => m.status === 'aktiv').length || 0;
             
             document.getElementById('openOrders').textContent = openOrders;
             document.getElementById('completedToday').textContent = completedToday;
             document.getElementById('totalRevenue').textContent = `€${todayRevenue.toFixed(2)}`;
+            document.getElementById('averageRating').textContent = avgRating.toFixed(1);
         }
 
         function showOrderDetails(order) {
-            alert(`Auftrag #${order.id}\n\nKunde: ${order.customer}\nAdresse: ${order.address}\nBranche: ${getIndustryName(order.industry)}\nDatum: ${formatDate(order.date)} um ${order.time}\nStatus: ${order.status}\nBeschreibung: ${order.description || 'Keine Beschreibung'}`);
+            const details = `
+Auftrag #${order.id}
+
+👤 Kunde: ${order.customer}
+📍 Adresse: ${order.address}
+🏢 Branche: ${getIndustryName(order.industry)}
+🌍 Land: ${getCountryName(order.country)}
+📅 Datum: ${formatDate(order.date)} um ${order.time}
+📞 Telefon: ${order.phone}
+⚡ Priorität: ${getPriorityText(order.priority)}
+📊 Status: ${getStatusText(order.status)}
+
+📝 Beschreibung:
+${order.description || 'Keine Beschreibung'}
+
+${order.monteur ? `👤 Monteur: ${getMonteurName(order.monteur)}` : ''}
+${order.amount ? `💰 Betrag: €${order.amount.toFixed(2)}` : ''}
+${order.paymentMethod ? `💳 Zahlungsart: ${getPaymentMethodName(order.paymentMethod)}` : ''}
+            `;
+            
+            if (tg) {
+                tg.showAlert(details);
+            } else {
+                alert(details);
+            }
         }
 
         function showSuccess(message) {
@@ -1147,11 +1716,18 @@
             successDiv.textContent = message;
             
             const activeScreen = document.querySelector('.screen.active');
-            activeScreen.insertBefore(successDiv, activeScreen.firstChild);
+            if (activeScreen) {
+                activeScreen.insertBefore(successDiv, activeScreen.firstChild);
+                
+                setTimeout(() => {
+                    successDiv.remove();
+                }, 3000);
+            }
             
-            setTimeout(() => {
-                successDiv.remove();
-            }, 3000);
+            // Also show in Telegram
+            if (tg) {
+                tg.showAlert(message);
+            }
         }
 
         function showError(message) {
@@ -1165,11 +1741,33 @@
             errorDiv.textContent = message;
             
             const activeScreen = document.querySelector('.screen.active');
-            activeScreen.insertBefore(errorDiv, activeScreen.firstChild);
+            if (activeScreen) {
+                activeScreen.insertBefore(errorDiv, activeScreen.firstChild);
+                
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 3000);
+            }
             
-            setTimeout(() => {
-                errorDiv.remove();
-            }, 3000);
+            // Also show in Telegram
+            if (tg) {
+                tg.showAlert(message);
+            }
+        }
+
+        function sendTelegramNotification(recipient, message) {
+            // In a real implementation, this would send to your Telegram bot
+            console.log(`Sending notification to ${recipient}: ${message}`);
+            
+            // For demo purposes, we'll just log it
+            const notification = {
+                recipient: recipient,
+                message: message,
+                timestamp: new Date().toISOString()
+            };
+            
+            // You would implement actual Telegram Bot API calls here
+            // Example: POST to your backend that handles bot messages
         }
 
         // File upload handlers
@@ -1196,22 +1794,61 @@
         }
 
         function handleFileUpload(file) {
-            if (file.type.startsWith('image/')) {
+            if (file.type.startsWith('image/') || file.type === 'application/pdf') {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const uploadArea = document.querySelector('.upload-area');
                     uploadArea.innerHTML = `
-                        <div>✅ Datei hochgeladen: ${file.name}</div>
-                        <div style="font-size: 12px; color: #666; margin-top: 8px;">Klicken zum Ändern</div>
+                        <div style="color: #28a745;">✅ Datei hochgeladen: ${file.name}</div>
+                        <div style="font-size: 12px; color: var(--tg-theme-hint-color, #666); margin-top: 4px;">
+                            Klicken zum Ändern
+                        </div>
                     `;
+                    
+                    // In a real implementation, you would upload to your backend
+                    console.log('File uploaded:', file.name);
                 };
                 reader.readAsDataURL(file);
             } else {
-                showError('Bitte nur Bilddateien hochladen!');
+                showError('Bitte nur Bilder oder PDF-Dateien hochladen!');
+            }
+        }
+
+        function saveReminderSettings() {
+            const reminderTime = document.getElementById('reminderTime').value;
+            const reminderEnabled = document.getElementById('reminderEnabled').checked;
+            
+            // Save to localStorage or send to backend
+            localStorage.setItem('reminderSettings', JSON.stringify({
+                time: reminderTime,
+                enabled: reminderEnabled
+            }));
+            
+            showSuccess('Erinnerungseinstellungen gespeichert!');
+            
+            // In a real implementation, you would set up the actual reminder system
+            if (reminderEnabled) {
+                console.log(`Daily reminder set for ${reminderTime}`);
             }
         }
 
         // Helper functions
+        function generateId() {
+            return Math.floor(Math.random() * 10000) + 1000;
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
         function getIndustryName(industry) {
             const names = {
                 rohrreinigung: 'Rohrreinigung',
@@ -1219,15 +1856,17 @@
                 schädlingsbekämpfung: 'Schädlingsbekämpfung',
                 sanitär: 'Sanitär',
                 elektrik: 'Elektrik',
-                heizung: 'Heizung'
+                heizung: 'Heizung',
+                sonstiges: 'Sonstiges'
             };
             return names[industry] || industry;
         }
 
         function getStatusBadge(status) {
             const badges = {
-                offen: '🔴 Offen',
+                neu: '🔴 Neu',
                 in_bearbeitung: '🟡 In Bearbeitung',
+                warten_auf_monteur: '🟠 Warten auf Monteur',
                 abgeschlossen: '✅ Abgeschlossen',
                 nicht_bezahlt: '❌ Nicht bezahlt',
                 storniert: '🚫 Storniert'
@@ -1235,13 +1874,59 @@
             return badges[status] || status;
         }
 
-        function getPriorityIcon(priority) {
-            const icons = {
-                normal: '🟢',
-                hoch: '🟡',
-                notfall: '🔴'
+        function getStatusText(status) {
+            return getStatusBadge(status).replace(/[🔴🟡🟠✅❌🚫] /, '');
+        }
+
+        function getPriorityBadge(priority) {
+            const badges = {
+                normal: '<span class="priority-normal">Normal</span>',
+                hoch: '<span class="priority-high">Hoch</span>',
+                notfall: '<span class="priority-urgent">Notfall</span>'
             };
-            return icons[priority] || '🟢';
+            return badges[priority] || priority;
+        }
+
+        function getPriorityText(priority) {
+            const texts = {
+                normal: 'Normal',
+                hoch: 'Hoch',
+                notfall: 'Notfall'
+            };
+            return texts[priority] || priority;
+        }
+
+        function getCountryFlag(country) {
+            const flags = {
+                AT: '🇦🇹',
+                CH: '🇨🇭',
+                DE: '🇩🇪'
+            };
+            return flags[country] || country;
+        }
+
+        function getCountryName(country) {
+            const names = {
+                AT: 'Österreich',
+                CH: 'Schweiz',
+                DE: 'Deutschland'
+            };
+            return names[country] || country;
+        }
+
+        function getPaymentMethodName(method) {
+            const names = {
+                bar: '💵 Bar',
+                überweisung: '🏦 Überweisung',
+                ec: '💳 EC-Karte',
+                twint: '📱 Twint'
+            };
+            return names[method] || method;
+        }
+
+        function getMonteurName(monteurId) {
+            const monteur = monteurs.find(m => m.id === monteurId);
+            return monteur ? monteur.name : 'Unbekannt';
         }
 
         function formatDate(dateString) {
@@ -1253,27 +1938,35 @@
             });
         }
 
-        function showAddUserForm() {
-            const name = prompt('Name des neuen Benutzers:');
-            if (name) {
-                const role = prompt('Rolle (admin/agent/monteur):');
-                if (role && ['admin', 'agent', 'monteur'].includes(role)) {
-                    const newUser = {
-                        id: users.length + 1,
-                        name: name,
-                        role: role,
-                        rating: 5.0,
-                        completedOrders: 0,
-                        avatar: name.charAt(0).toUpperCase()
-                    };
-                    users.push(newUser);
-                    loadUserManagement();
-                    showSuccess('Benutzer erfolgreich hinzugefügt!');
-                } else {
-                    showError('Ungültige Rolle!');
+        // Initialize daily reminder check
+        function checkDailyReminder() {
+            const reminderSettings = localStorage.getItem('reminderSettings');
+            if (reminderSettings) {
+                const settings = JSON.parse(reminderSettings);
+                if (settings.enabled) {
+                    const now = new Date();
+                    const reminderTime = new Date();
+                    const [hours, minutes] = settings.time.split(':');
+                    reminderTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                    
+                    if (now >= reminderTime) {
+                        // Check if revenue was reported today
+                        const todayReports = orders.filter(o => 
+                            o.completedAt && 
+                            new Date(o.completedAt).toDateString() === now.toDateString()
+                        );
+                        
+                        if (todayReports.length === 0) {
+                            sendTelegramNotification(currentUser.telegramId, 
+                                '⏰ Erinnerung: Haben Sie heute schon Ihren Umsatz gemeldet?');
+                        }
+                    }
                 }
             }
         }
+
+        // Check reminder every hour
+        setInterval(checkDailyReminder, 3600000);
     </script>
 </body>
 </html>
