@@ -2,7 +2,7 @@
 const AMP_CONFIG = {
     // n8n Server Configuration
     n8n: {
-        baseUrl: process.env.N8N_SERVER_URL || 'https://your-n8n-server.com',
+        baseUrl: process.env.N8N_SERVER_URL || 'https://amp-telegram.app.n8n.cloud/webhook-test/amp-orders',
         webhooks: {
             orders: '/webhook/amp-orders',
             revenue: '/webhook/amp-revenue',
