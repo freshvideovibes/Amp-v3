@@ -685,12 +685,106 @@
                 margin-bottom: 12px;
             }
         }
+
+        /* Login Form Styles */
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--ios-text-primary);
+        }
+
+        .login-form input,
+        .login-form select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--ios-separator);
+            border-radius: 12px;
+            background: var(--ios-bg-secondary);
+            color: var(--ios-text-primary);
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .login-form input:focus,
+        .login-form select:focus {
+            outline: none;
+            border-color: var(--ios-blue);
+        }
+
+        .login-form .btn {
+            width: 100%;
+            margin-top: 16px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .login-help {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--ios-bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--ios-separator);
+        }
+
+        /* Notification Styles */
+        .notification {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Login Screen -->
+        <div class="screen active" id="loginScreen">
+            <h1>🔐 AMP - Login</h1>
+            <p style="text-align: center; color: var(--tg-theme-hint-color, #666); margin-bottom: 32px; font-size: 15px; font-weight: 500;">
+                Digitale Auftragsverwaltung für Deutschland, Österreich & Schweiz
+            </p>
+            
+            <div class="login-form">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Benutzername:</label>
+                        <input type="text" id="loginUsername" placeholder="Telefonnummer oder Benutzername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Passwort:</label>
+                        <input type="password" id="loginPassword" placeholder="Passwort eingeben" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginRole">Rolle:</label>
+                        <select id="loginRole" required>
+                            <option value="">-- Bitte wählen --</option>
+                            <option value="admin">⚙️ Admin</option>
+                            <option value="monteur">🔧 Monteur</option>
+                            <option value="agent">👤 Agent</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">🔐 Anmelden</button>
+                </form>
+                <div class="login-help">
+                    <p style="text-align: center; color: var(--tg-theme-hint-color, #666); margin-top: 24px; font-size: 14px;">
+                        Monteure: Telefonnummer als Benutzername verwenden<br>
+                        Bei Problemen wenden Sie sich an den Administrator
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <!-- Welcome/Role Selection Screen -->
-        <div class="screen active" id="welcomeScreen">
+        <div class="screen" id="welcomeScreen">
             <h1>🚀 AMP - AuftragsManager Pro</h1>
             <p style="text-align: center; color: var(--tg-theme-hint-color, #666); margin-bottom: 32px; font-size: 15px; font-weight: 500;">
                 Digitale Auftragsverwaltung für Deutschland, Österreich & Schweiz
@@ -713,6 +807,12 @@
                     <div class="menu-icon">📝</div>
                     <div>Registrierung</div>
                 </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 32px;">
+                <button class="btn" onclick="logout()" style="background: var(--ios-red); color: white;">
+                    🚪 Abmelden
+                </button>
             </div>
         </div>
 
@@ -1136,12 +1236,354 @@
         let monteurs = [];
         let userData = {};
         let pushNotifications = [];
+        let isAuthenticated = false;
+
+        // User Database - Predefined users
+        const userDatabase = {
+            // Admin users
+            admin: {
+                username: 'admin',
+                password: 'admin123',
+                role: 'admin',
+                name: 'Administrator',
+                permissions: ['all']
+            },
+            
+            // Monteur users (phone number as username)
+            '+491234567890': {
+                username: '+491234567890',
+                password: 'monteur123',
+                role: 'monteur',
+                name: 'Max Mustermann',
+                phone: '+491234567890',
+                serviceArea: 'Berlin',
+                country: 'DE',
+                permissions: ['orders', 'revenue', 'status']
+            },
+            '+4369912345678': {
+                username: '+4369912345678',
+                password: 'monteur456',
+                role: 'monteur',
+                name: 'Anna Schmidt',
+                phone: '+4369912345678',
+                serviceArea: 'Wien',
+                country: 'AT',
+                permissions: ['orders', 'revenue', 'status']
+            },
+            '+41791234567': {
+                username: '+41791234567',
+                password: 'monteur789',
+                role: 'monteur',
+                name: 'Peter Müller',
+                phone: '+41791234567',
+                serviceArea: 'Zürich',
+                country: 'CH',
+                permissions: ['orders', 'revenue', 'status']
+            },
+            
+            // Agent users
+            'agent1': {
+                username: 'agent1',
+                password: 'agent123',
+                role: 'agent',
+                name: 'Agent Beispiel',
+                permissions: ['orders', 'monteur_assignment']
+            }
+        };
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
             initializeTelegramWebApp();
             initializeApp();
+            checkAuthenticationStatus();
         });
+
+        // Authentication Functions
+        function checkAuthenticationStatus() {
+            // Check if user is already logged in (from localStorage)
+            const savedUser = localStorage.getItem('amp_current_user');
+            const savedAuthStatus = localStorage.getItem('amp_auth_status');
+            
+            if (savedUser && savedAuthStatus === 'true') {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    isAuthenticated = true;
+                    showScreen('welcomeScreen');
+                    updateUserInterface();
+                    console.log('User already logged in:', currentUser.name);
+                } catch (error) {
+                    console.error('Error parsing saved user data:', error);
+                    logout();
+                }
+            } else {
+                showScreen('loginScreen');
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const selectedRole = document.getElementById('loginRole').value;
+            
+            if (!username || !password || !selectedRole) {
+                showNotification('Bitte alle Felder ausfüllen!', 'error');
+                return;
+            }
+            
+            // Authenticate user
+            const user = authenticateUser(username, password, selectedRole);
+            
+            if (user) {
+                currentUser = user;
+                isAuthenticated = true;
+                
+                // Save to localStorage for persistence
+                localStorage.setItem('amp_current_user', JSON.stringify(currentUser));
+                localStorage.setItem('amp_auth_status', 'true');
+                
+                // Show success message
+                showNotification(`Willkommen, ${currentUser.name}!`, 'success');
+                
+                // Navigate to main screen
+                showScreen('welcomeScreen');
+                updateUserInterface();
+                
+                // Clear form
+                document.getElementById('loginForm').reset();
+                
+                console.log('User logged in successfully:', currentUser);
+            } else {
+                showNotification('Ungültige Anmeldedaten oder falsche Rolle!', 'error');
+            }
+        }
+
+        function authenticateUser(username, password, role) {
+            // Check if user exists in database
+            const user = userDatabase[username];
+            
+            if (!user) {
+                return null;
+            }
+            
+            // Check password
+            if (user.password !== password) {
+                return null;
+            }
+            
+            // Check role
+            if (user.role !== role) {
+                return null;
+            }
+            
+            // Return user object with login timestamp
+            return {
+                ...user,
+                loginTimestamp: new Date().toISOString(),
+                sessionId: generateSessionId()
+            };
+        }
+
+        function logout() {
+            // Clear authentication state
+            currentUser = null;
+            isAuthenticated = false;
+            
+            // Clear localStorage
+            localStorage.removeItem('amp_current_user');
+            localStorage.removeItem('amp_auth_status');
+            
+            // Show logout message
+            showNotification('Erfolgreich abgemeldet!', 'info');
+            
+            // Navigate to login screen
+            showScreen('loginScreen');
+            
+            console.log('User logged out successfully');
+        }
+
+        function generateSessionId() {
+            return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        }
+
+        function showNotification(message, type = 'info') {
+            // Use Telegram WebApp notification if available
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.showAlert(message);
+                return;
+            }
+            
+            // Fallback to browser notification
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            // Add styles
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 20px;
+                border-radius: 12px;
+                color: white;
+                font-weight: 500;
+                font-size: 14px;
+                z-index: 10000;
+                max-width: 300px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(10px);
+                transition: all 0.3s ease;
+                transform: translateX(100%);
+            `;
+            
+            // Set background color based on type
+            switch (type) {
+                case 'success':
+                    notification.style.backgroundColor = 'var(--ios-green)';
+                    break;
+                case 'error':
+                    notification.style.backgroundColor = 'var(--ios-red)';
+                    break;
+                case 'warning':
+                    notification.style.backgroundColor = 'var(--ios-orange)';
+                    break;
+                default:
+                    notification.style.backgroundColor = 'var(--ios-blue)';
+            }
+            
+            // Add to body
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remove after 4 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 4000);
+        }
+
+        function updateUserInterface() {
+            if (currentUser) {
+                // Update user role display
+                const userRoleElement = document.getElementById('userRole');
+                if (userRoleElement) {
+                    userRoleElement.textContent = currentUser.name;
+                }
+                
+                // Update menu based on user permissions
+                updateMenuPermissions();
+                
+                // Update any other UI elements based on user role
+                updateRoleSpecificUI();
+            }
+        }
+
+        function updateMenuPermissions() {
+            const menuGrid = document.getElementById('menuGrid');
+            if (!menuGrid || !currentUser) return;
+            
+            // Clear existing menu items
+            menuGrid.innerHTML = '';
+            
+            // Add menu items based on user permissions
+            const menuItems = getMenuItemsForUser(currentUser);
+            
+            menuItems.forEach(item => {
+                const menuDiv = document.createElement('div');
+                menuDiv.className = 'menu-item';
+                menuDiv.onclick = item.action;
+                menuDiv.innerHTML = `
+                    <div class="menu-icon">${item.icon}</div>
+                    <div>${item.label}</div>
+                `;
+                menuGrid.appendChild(menuDiv);
+            });
+        }
+
+        function getMenuItemsForUser(user) {
+            const baseItems = [];
+            
+            // Add items based on role and permissions
+            if (user.permissions.includes('all') || user.permissions.includes('orders')) {
+                baseItems.push({
+                    icon: '📋',
+                    label: 'Neue Bestellung',
+                    action: () => showScreen('newOrderScreen')
+                });
+                
+                baseItems.push({
+                    icon: '📊',
+                    label: 'Aufträge anzeigen',
+                    action: () => showScreen('orderListScreen')
+                });
+            }
+            
+            if (user.permissions.includes('all') || user.permissions.includes('revenue')) {
+                baseItems.push({
+                    icon: '💰',
+                    label: 'Umsatz melden',
+                    action: () => showScreen('revenueScreen')
+                });
+            }
+            
+            if (user.permissions.includes('all') || user.permissions.includes('monteur_assignment')) {
+                baseItems.push({
+                    icon: '👥',
+                    label: 'Monteur zuweisen',
+                    action: () => showScreen('assignMonteurScreen')
+                });
+            }
+            
+            if (user.permissions.includes('all') || user.permissions.includes('status')) {
+                baseItems.push({
+                    icon: '🔄',
+                    label: 'Status ändern',
+                    action: () => showScreen('statusScreen')
+                });
+            }
+            
+            if (user.permissions.includes('all')) {
+                baseItems.push({
+                    icon: '📈',
+                    label: 'Berichte',
+                    action: () => showScreen('reportsScreen')
+                });
+                
+                baseItems.push({
+                    icon: '🔔',
+                    label: 'Push-Nachrichten',
+                    action: () => showScreen('pushScreen')
+                });
+            }
+            
+            return baseItems;
+        }
+
+        function updateRoleSpecificUI() {
+            if (!currentUser) return;
+            
+            // Update forms and fields based on user role
+            if (currentUser.role === 'monteur') {
+                // Pre-fill monteur fields
+                const monteurFields = document.querySelectorAll('[data-auto-fill="monteur"]');
+                monteurFields.forEach(field => {
+                    if (field.type === 'tel' || field.name === 'phone') {
+                        field.value = currentUser.phone || '';
+                    }
+                    if (field.name === 'monteur') {
+                        field.value = currentUser.name || '';
+                    }
+                });
+            }
+        }
 
         function initializeTelegramWebApp() {
             if (tg) {
@@ -1160,6 +1602,12 @@
                     if (currentScreen.id === 'dashboardScreen') {
                         showScreen('welcomeScreen');
                     } else if (currentScreen.id === 'welcomeScreen') {
+                        if (isAuthenticated) {
+                            logout();
+                        } else {
+                            tg.close();
+                        }
+                    } else if (currentScreen.id === 'loginScreen') {
                         tg.close();
                     } else {
                         showScreen('dashboardScreen');
@@ -1184,10 +1632,16 @@
             
             // Add event listeners
             setupEventListeners();
+            
+            // Initialize authentication-related UI
+            if (isAuthenticated && currentUser) {
+                updateUserInterface();
+            }
         }
 
         function setupEventListeners() {
             // Form submissions
+            document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
             document.getElementById('registrationForm')?.addEventListener('submit', handleRegistration);
             document.getElementById('newOrderForm')?.addEventListener('submit', handleNewOrder);
             document.getElementById('revenueForm')?.addEventListener('submit', handleRevenueReport);
