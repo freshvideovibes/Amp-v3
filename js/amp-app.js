@@ -1,8 +1,30 @@
 Telegram.WebApp.ready();
 
+// Legacy function - wird durch amp-enhanced.js ersetzt
+// Temporäre Kompatibilität für bestehende Buttons
 async function sendToWebhook(endpoint, data, successMsg, errorMsg) {
+  if (window.ampEnhanced) {
+    // Neue Enhanced-Funktion verwenden
+    try {
+      await window.ampEnhanced.sendToN8N(endpoint, data, {
+        successMessage: successMsg,
+        errorMessage: errorMsg
+      });
+    } catch (error) {
+      console.error('Enhanced webhook failed, falling back to legacy:', error);
+      // Fallback zur alten Methode
+      return legacySendToWebhook(endpoint, data, successMsg, errorMsg);
+    }
+  } else {
+    return legacySendToWebhook(endpoint, data, successMsg, errorMsg);
+  }
+}
+
+// Alte Funktion als Fallback
+async function legacySendToWebhook(endpoint, data, successMsg, errorMsg) {
   try {
-    const res = await fetch(`https://DEIN-N8N-SERVER/webhook/${endpoint}`, {
+    const baseUrl = window.AMP_CONFIG?.n8n?.baseUrl || 'https://DEIN-N8N-SERVER';
+    const res = await fetch(`${baseUrl}/webhook/${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)

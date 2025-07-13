@@ -1,0 +1,256 @@
+{
+  "name": "AMP - Order Management Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "amp-orders",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-orders",
+      "name": "Webhook - Orders",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "amp-orders-webhook"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "order_id",
+              "value": "={{$json.id}}"
+            },
+            {
+              "name": "customer_name",
+              "value": "={{$json.name}}"
+            },
+            {
+              "name": "customer_phone",
+              "value": "={{$json.phone}}"
+            },
+            {
+              "name": "full_address",
+              "value": "={{$json.address}}, {{$json.zip}} {{$json.city}}, {{$json.country}}"
+            },
+            {
+              "name": "branch",
+              "value": "={{$json.branch}}"
+            },
+            {
+              "name": "description",
+              "value": "={{$json.description}}"
+            },
+            {
+              "name": "preferred_time",
+              "value": "={{$json.preferred_time}}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{$json.timestamp}}"
+            },
+            {
+              "name": "telegram_user",
+              "value": "={{$json.userContext.telegram_id}}"
+            },
+            {
+              "name": "status",
+              "value": "neu"
+            },
+            {
+              "name": "maps_link",
+              "value": "={{$json.location.maps_link}}"
+            },
+            {
+              "name": "coordinates",
+              "value": "={{$json.location.coordinates ? $json.location.coordinates.lat + ',' + $json.location.coordinates.lng : ''}}"
+            }
+          ]
+        }
+      },
+      "id": "process-order-data",
+      "name": "Process Order Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Aufträge",
+        "columnToMatchOn": "order_id",
+        "valueInputMode": "defineBelow",
+        "valuesToAppend": {
+          "values": [
+            {
+              "A": "={{$json.order_id}}",
+              "B": "={{$json.customer_name}}",
+              "C": "={{$json.customer_phone}}",
+              "D": "={{$json.full_address}}",
+              "E": "={{$json.branch}}",
+              "F": "={{$json.description}}",
+              "G": "={{$json.preferred_time}}",
+              "H": "={{$json.created_at}}",
+              "I": "={{$json.status}}",
+              "J": "={{$json.maps_link}}",
+              "K": "={{$json.coordinates}}",
+              "L": "={{$json.telegram_user}}"
+            }
+          ]
+        }
+      },
+      "id": "google-sheets-append",
+      "name": "Google Sheets - Add Order",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ADMIN_CHAT_ID}}",
+        "text": "🆕 *Neuer Auftrag*\n\n📋 *Auftrag:* {{$json.order_id}}\n👤 *Kunde:* {{$json.customer_name}}\n📞 *Telefon:* {{$json.customer_phone}}\n📍 *Adresse:* {{$json.full_address}}\n🔧 *Branche:* {{$json.branch}}\n📝 *Beschreibung:* {{$json.description}}\n⏰ *Wunschzeit:* {{$json.preferred_time}}\n\n[📍 Google Maps]({{$json.maps_link}})",
+        "parseMode": "Markdown"
+      },
+      "id": "telegram-notification",
+      "name": "Telegram - Admin Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [680, 480]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.branch}}",
+              "operation": "equal",
+              "value2": "rohrreinigung"
+            }
+          ]
+        }
+      },
+      "id": "check-branch-rohrreinigung",
+      "name": "Check Branch - Rohrreinigung",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ROHRREINIGUNG_CHANNEL}}",
+        "text": "🚿 *Rohrreinigung Auftrag*\n\n{{$json.order_id}} - {{$json.customer_name}}\n📍 {{$json.full_address}}\n📞 {{$json.customer_phone}}\n\n{{$json.description}}\n\n[📍 Karte öffnen]({{$json.maps_link}})",
+        "parseMode": "Markdown"
+      },
+      "id": "telegram-rohrreinigung",
+      "name": "Telegram - Rohrreinigung Channel",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": {
+          "success": true,
+          "message": "Auftrag erfolgreich erstellt",
+          "order_id": "={{$json.order_id}}",
+          "timestamp": "={{$now}}"
+        }
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 400]
+    }
+  ],
+  "connections": {
+    "Webhook - Orders": {
+      "main": [
+        [
+          {
+            "node": "Process Order Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Order Data": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Add Order",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram - Admin Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Add Order": {
+      "main": [
+        [
+          {
+            "node": "Check Branch - Rohrreinigung",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Branch - Rohrreinigung": {
+      "main": [
+        [
+          {
+            "node": "Telegram - Rohrreinigung Channel",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram - Rohrreinigung Channel": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "description": "Workflow für die Verarbeitung neuer Aufträge mit Google Sheets und Telegram Integration"
+  },
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-12-28T10:00:00.000Z",
+  "versionId": "1"
+}
