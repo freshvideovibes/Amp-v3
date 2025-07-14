@@ -1,0 +1,584 @@
+{
+  "name": "AMP - Enhanced Revenue Management",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "amp-revenue",
+        "responseMode": "responseNode",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "webhook-revenue",
+      "name": "Webhook - Revenue",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "amp-revenue-webhook"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "revenue_id",
+              "value": "={{$json.id}}"
+            },
+            {
+              "name": "auftragsnummer",
+              "value": "={{$json.auftragsnummer}}"
+            },
+            {
+              "name": "brutto_betrag",
+              "value": "={{$json.betrag}}"
+            },
+            {
+              "name": "netto_betrag",
+              "value": "={{$json.calculated_metrics.net_amount}}"
+            },
+            {
+              "name": "mwst_betrag",
+              "value": "={{$json.calculated_metrics.tax_amount}}"
+            },
+            {
+              "name": "provision",
+              "value": "={{$json.calculated_metrics.commission}}"
+            },
+            {
+              "name": "provisionssatz",
+              "value": "={{$json.calculated_metrics.commission_rate}}"
+            },
+            {
+              "name": "zahlungsart",
+              "value": "={{$json.zahlungsart}}"
+            },
+            {
+              "name": "land",
+              "value": "={{$json.land}}"
+            },
+            {
+              "name": "branche",
+              "value": "={{$json.branche}}"
+            },
+            {
+              "name": "kategorie",
+              "value": "={{$json.calculated_metrics.category}}"
+            },
+            {
+              "name": "monteur",
+              "value": "={{$json.monteur}}"
+            },
+            {
+              "name": "kunde",
+              "value": "={{$json.kunde}}"
+            },
+            {
+              "name": "plz",
+              "value": "={{$json.plz}}"
+            },
+            {
+              "name": "priorität",
+              "value": "={{$json.calculated_metrics.priority_score}}"
+            },
+            {
+              "name": "gemeldet_am",
+              "value": "={{$json.processed_at}}"
+            },
+            {
+              "name": "telegram_user",
+              "value": "={{$json.userContext.telegram_id}}"
+            },
+            {
+              "name": "telegram_username",
+              "value": "={{$json.userContext.username}}"
+            },
+            {
+              "name": "app_version",
+              "value": "={{$json.appVersion}}"
+            },
+            {
+              "name": "session_id",
+              "value": "={{$json.sessionId}}"
+            },
+            {
+              "name": "request_id",
+              "value": "={{$headers['x-request-id']}}"
+            },
+            {
+              "name": "quartal",
+              "value": "={{Math.ceil(new Date($json.processed_at).getMonth() / 3)}}"
+            },
+            {
+              "name": "jahr",
+              "value": "={{new Date($json.processed_at).getFullYear()}}"
+            },
+            {
+              "name": "monat",
+              "value": "={{new Date($json.processed_at).getMonth() + 1}}"
+            },
+            {
+              "name": "kw",
+              "value": "={{Math.ceil(new Date($json.processed_at).getDate() / 7)}}"
+            }
+          ]
+        }
+      },
+      "id": "process-revenue-data",
+      "name": "Process Revenue Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Umsatz",
+        "columnToMatchOn": "revenue_id",
+        "valueInputMode": "defineBelow",
+        "valuesToAppend": {
+          "values": [
+            {
+              "A": "={{$json.revenue_id}}",
+              "B": "={{$json.auftragsnummer}}",
+              "C": "={{$json.brutto_betrag}}",
+              "D": "={{$json.netto_betrag}}",
+              "E": "={{$json.mwst_betrag}}",
+              "F": "={{$json.provision}}",
+              "G": "={{$json.provisionssatz}}",
+              "H": "={{$json.zahlungsart}}",
+              "I": "={{$json.land}}",
+              "J": "={{$json.branche}}",
+              "K": "={{$json.kategorie}}",
+              "L": "={{$json.monteur}}",
+              "M": "={{$json.kunde}}",
+              "N": "={{$json.plz}}",
+              "O": "={{$json.priorität}}",
+              "P": "={{$json.gemeldet_am}}",
+              "Q": "={{$json.telegram_user}}",
+              "R": "={{$json.telegram_username}}",
+              "S": "={{$json.app_version}}",
+              "T": "={{$json.session_id}}",
+              "U": "={{$json.request_id}}",
+              "V": "={{$json.quartal}}",
+              "W": "={{$json.jahr}}",
+              "X": "={{$json.monat}}",
+              "Y": "={{$json.kw}}"
+            }
+          ]
+        }
+      },
+      "id": "google-sheets-revenue",
+      "name": "Google Sheets - Add Revenue",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "sheet",
+        "operation": "update",
+        "documentId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Aufträge",
+        "columnToMatchOn": "order_id",
+        "valueToMatchOn": "={{$json.auftragsnummer}}",
+        "valueInputMode": "defineBelow",
+        "valuesToUpdate": {
+          "values": [
+            {
+              "M": "={{$json.brutto_betrag}}",
+              "N": "={{$json.zahlungsart}}",
+              "O": "={{$json.gemeldet_am}}"
+            }
+          ]
+        }
+      },
+      "id": "google-sheets-update-order",
+      "name": "Google Sheets - Update Order",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [680, 480]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_REVENUE_CHANNEL}}",
+        "text": "💰 *UMSATZ GEMELDET*\n\n*Umsatz-ID:* `{{$json.revenue_id}}`\n*Auftragsnummer:* `{{$json.auftragsnummer}}`\n*Brutto:* {{$json.brutto_betrag}}€\n*Netto:* {{$json.netto_betrag}}€\n*MwSt:* {{$json.mwst_betrag}}€\n*Provision:* {{$json.provision}}€ ({{$json.provisionssatz}}%)\n\n*Kunde:* {{$json.kunde}}\n*Branche:* {{$json.branche}}\n*Kategorie:* {{$json.kategorie}}\n*Monteur:* {{$json.monteur}}\n*Zahlungsart:* {{$json.zahlungsart}}\n*Land:* {{$json.land}}\n*PLZ:* {{$json.plz}}\n*Priorität:* {{$json.priorität}}/20\n\n*Gemeldet von:* @{{$json.telegram_username}}\n*Gemeldet am:* {{$json.gemeldet_am}}",
+        "parseMode": "Markdown"
+      },
+      "id": "telegram-revenue-notification",
+      "name": "Telegram - Revenue Channel",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{parseFloat($json.brutto_betrag)}}",
+              "operation": "largerEqual",
+              "value2": 1000
+            }
+          ]
+        }
+      },
+      "id": "check-high-revenue",
+      "name": "High Revenue Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ADMIN_CHAT_ID}}",
+        "text": "🚀 *HOHER UMSATZ!*\n\n*Betrag:* {{$json.brutto_betrag}}€\n*Auftrag:* {{$json.auftragsnummer}}\n*Kunde:* {{$json.kunde}}\n*Monteur:* {{$json.monteur}}\n*Branche:* {{$json.branche}}\n*Provision:* {{$json.provision}}€\n\n*Gemeldet von:* @{{$json.telegram_username}}\n\n🎉 *Gratulation zum Erfolg!*",
+        "parseMode": "Markdown"
+      },
+      "id": "telegram-high-revenue-alert",
+      "name": "Telegram - High Revenue Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.zahlungsart}}",
+              "operation": "equal",
+              "value2": "bar"
+            }
+          ]
+        }
+      },
+      "id": "check-cash-payment",
+      "name": "Cash Payment Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 600]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ADMIN_CHAT_ID}}",
+        "text": "💵 *BARZAHLUNG*\n\n*Betrag:* {{$json.brutto_betrag}}€\n*Auftrag:* {{$json.auftragsnummer}}\n*Kunde:* {{$json.kunde}}\n*Monteur:* {{$json.monteur}}\n*Provision:* {{$json.provision}}€\n\n*Gemeldet von:* @{{$json.telegram_username}}\n\n💰 *Bargeld verbucht!*",
+        "parseMode": "Markdown"
+      },
+      "id": "telegram-cash-payment-alert",
+      "name": "Telegram - Cash Payment Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1120, 500]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Aktivitäten",
+        "valueInputMode": "defineBelow",
+        "valuesToAppend": {
+          "values": [
+            {
+              "A": "={{$json.auftragsnummer}}",
+              "B": "revenue_reported",
+              "C": "={{$json.gemeldet_am}}",
+              "D": "={{$json.telegram_user}}",
+              "E": "Umsatz gemeldet: {{$json.brutto_betrag}}€",
+              "F": "={{$json.branche}}",
+              "G": "={{$json.priorität}}",
+              "H": "={{$json.session_id}}",
+              "I": "={{$json.request_id}}",
+              "J": "={{$json.revenue_id}}"
+            }
+          ]
+        }
+      },
+      "id": "google-sheets-activity-log",
+      "name": "Google Sheets - Activity Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 800]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$json.userContext.telegram_id}}",
+        "text": "✅ *Umsatz erfolgreich gemeldet!*\n\n*Umsatz-ID:* `{{$json.revenue_id}}`\n*Auftragsnummer:* `{{$json.auftragsnummer}}`\n*Brutto:* {{$json.brutto_betrag}}€\n*Netto:* {{$json.netto_betrag}}€\n*Ihre Provision:* {{$json.provision}}€\n\nDer Umsatz wurde erfolgreich verbucht und ist in der Übersicht sichtbar.",
+        "parseMode": "Markdown"
+      },
+      "id": "telegram-user-confirmation",
+      "name": "Telegram - User Confirmation",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1120, 700]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Monteur_Statistiken",
+        "columnToMatchOn": "monteur",
+        "valueInputMode": "defineBelow",
+        "valuesToAppend": {
+          "values": [
+            {
+              "A": "={{$json.monteur}}",
+              "B": "={{$json.branche}}",
+              "C": "={{$json.brutto_betrag}}",
+              "D": "={{$json.provision}}",
+              "E": "={{$json.gemeldet_am}}",
+              "F": "={{$json.monat}}",
+              "G": "={{$json.jahr}}",
+              "H": "={{$json.quartal}}",
+              "I": "={{$json.kw}}",
+              "J": "={{$json.zahlungsart}}",
+              "K": "={{$json.land}}",
+              "L": "={{$json.plz}}"
+            }
+          ]
+        }
+      },
+      "id": "google-sheets-monteur-stats",
+      "name": "Google Sheets - Monteur Statistics",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 1000]
+    },
+    {
+      "parameters": {
+        "responseCode": 200,
+        "responseBody": {
+          "success": true,
+          "revenue_id": "={{$json.revenue_id}}",
+          "auftragsnummer": "={{$json.auftragsnummer}}",
+          "brutto_betrag": "={{$json.brutto_betrag}}",
+          "netto_betrag": "={{$json.netto_betrag}}",
+          "provision": "={{$json.provision}}",
+          "kategorie": "={{$json.kategorie}}",
+          "priorität": "={{$json.priorität}}",
+          "timestamp": "={{$json.gemeldet_am}}"
+        }
+      },
+      "id": "response-success",
+      "name": "Response - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.branche}}",
+              "operation": "equal",
+              "value2": "rohrreinigung"
+            }
+          ]
+        }
+      },
+      "id": "check-rohrreinigung-branch",
+      "name": "Rohrreinigung Branch Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1120, 900]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ROHRREINIGUNG_CHANNEL}}",
+        "text": "🚿💰 *ROHRREINIGUNG UMSATZ*\n\n*Betrag:* {{$json.brutto_betrag}}€\n*Auftrag:* {{$json.auftragsnummer}}\n*Kunde:* {{$json.kunde}}\n*Monteur:* {{$json.monteur}}\n*Zahlungsart:* {{$json.zahlungsart}}\n*Provision:* {{$json.provision}}€\n\n*Monat:* {{$json.monat}}/{{$json.jahr}}\n*Quartal:* Q{{$json.quartal}}\n\n💪 *Weiter so!*",
+        "parseMode": "Markdown"
+      },
+      "id": "telegram-rohrreinigung-revenue",
+      "name": "Telegram - Rohrreinigung Revenue",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1340, 800]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{parseFloat($json.brutto_betrag)}}",
+              "operation": "smaller",
+              "value2": 50
+            }
+          ]
+        }
+      },
+      "id": "check-low-revenue",
+      "name": "Low Revenue Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1120, 1100]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ADMIN_CHAT_ID}}",
+        "text": "⚠️ *NIEDRIGER UMSATZ*\n\n*Betrag:* {{$json.brutto_betrag}}€\n*Auftrag:* {{$json.auftragsnummer}}\n*Kunde:* {{$json.kunde}}\n*Monteur:* {{$json.monteur}}\n*Branche:* {{$json.branche}}\n\n*Gemeldet von:* @{{$json.telegram_username}}\n\n⚠️ *Prüfung erforderlich*",
+        "parseMode": "Markdown"
+      },
+      "id": "telegram-low-revenue-alert",
+      "name": "Telegram - Low Revenue Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1340, 1000]
+    }
+  ],
+  "connections": {
+    "webhook-revenue": {
+      "main": [
+        [
+          {
+            "node": "process-revenue-data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "process-revenue-data": {
+      "main": [
+        [
+          {
+            "node": "google-sheets-revenue",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "google-sheets-update-order",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "telegram-revenue-notification",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-high-revenue",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-cash-payment",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "google-sheets-activity-log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "telegram-user-confirmation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "google-sheets-monteur-stats",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-rohrreinigung-branch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-low-revenue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "google-sheets-revenue": {
+      "main": [
+        [
+          {
+            "node": "response-success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-high-revenue": {
+      "main": [
+        [
+          {
+            "node": "telegram-high-revenue-alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-cash-payment": {
+      "main": [
+        [
+          {
+            "node": "telegram-cash-payment-alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-rohrreinigung-branch": {
+      "main": [
+        [
+          {
+            "node": "telegram-rohrreinigung-revenue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-low-revenue": {
+      "main": [
+        [
+          {
+            "node": "telegram-low-revenue-alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "amp-error-handler"
+  },
+  "staticData": {},
+  "tags": ["amp", "revenue", "telegram", "sheets", "commission"],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1.0.0"
+}

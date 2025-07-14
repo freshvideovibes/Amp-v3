@@ -1,0 +1,562 @@
+{
+  "name": "AMP - Telegram Bot & Reports",
+  "nodes": [
+    {
+      "parameters": {
+        "webhookId": "amp-telegram-bot"
+      },
+      "id": "telegram-webhook",
+      "name": "Telegram Bot Webhook",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.message.text}}",
+              "operation": "startsWith",
+              "value2": "/stats"
+            }
+          ]
+        }
+      },
+      "id": "command-stats",
+      "name": "Command: /stats",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.message.text}}",
+              "operation": "startsWith",
+              "value2": "/today"
+            }
+          ]
+        }
+      },
+      "id": "command-today",
+      "name": "Command: /today",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.message.text}}",
+              "operation": "startsWith",
+              "value2": "/top"
+            }
+          ]
+        }
+      },
+      "id": "command-top",
+      "name": "Command: /top",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.message.text}}",
+              "operation": "startsWith",
+              "value2": "/urgent"
+            }
+          ]
+        }
+      },
+      "id": "command-urgent",
+      "name": "Command: /urgent",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 800]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "read",
+        "sheetId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Dashboard",
+        "range": "A2:C10"
+      },
+      "id": "get-dashboard-data",
+      "name": "Get Dashboard Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "read",
+        "sheetId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Aufträge",
+        "range": "A:U",
+        "options": {
+          "headerRow": true
+        }
+      },
+      "id": "get-todays-orders",
+      "name": "Get Today's Orders",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "read",
+        "sheetId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Monteur_Dashboard",
+        "range": "A:O",
+        "options": {
+          "headerRow": true
+        }
+      },
+      "id": "get-monteur-rankings",
+      "name": "Get Monteur Rankings",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [680, 600]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "read",
+        "sheetId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Aufträge",
+        "range": "A:U",
+        "options": {
+          "headerRow": true
+        }
+      },
+      "id": "get-urgent-orders",
+      "name": "Get Urgent Orders",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [680, 800]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Dashboard Statistics\nconst data = $input.all();\nlet message = '📊 *AMP Dashboard Statistiken*\\n\\n';\n\nfor (const row of data) {\n  const [kennzahl, wert, ziel] = row.json;\n  const progress = parseFloat(wert) / parseFloat(ziel) * 100;\n  const indicator = progress >= 100 ? '✅' : progress >= 75 ? '🟡' : '🔴';\n  \n  message += `${indicator} *${kennzahl}*\\n`;\n  message += `   Aktuell: ${wert}\\n`;\n  message += `   Ziel: ${ziel}\\n`;\n  message += `   Fortschritt: ${progress.toFixed(1)}%\\n\\n`;\n}\n\nmessage += `🕐 *Letztes Update:* ${new Date().toLocaleString('de-DE')}`;\n\nreturn [{ json: { message } }];"
+      },
+      "id": "format-stats-message",
+      "name": "Format Stats Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Today's Orders\nconst data = $input.all();\nconst today = new Date().toISOString().split('T')[0];\nlet message = '📋 *Heutige Aufträge*\\n\\n';\n\nconst todaysOrders = data.filter(order => {\n  const orderDate = new Date(order.json.created_at).toISOString().split('T')[0];\n  return orderDate === today;\n});\n\nif (todaysOrders.length === 0) {\n  message += 'Keine Aufträge heute. 😴\\n';\n} else {\n  message += `📈 *Gesamt:* ${todaysOrders.length} Aufträge\\n\\n`;\n  \n  // Group by branch\n  const byBranch = {};\n  todaysOrders.forEach(order => {\n    const branch = order.json.branch;\n    if (!byBranch[branch]) byBranch[branch] = 0;\n    byBranch[branch]++;\n  });\n  \n  Object.entries(byBranch).forEach(([branch, count]) => {\n    const emoji = {\n      'rohrreinigung': '🚿',\n      'heizung': '🔥',\n      'sanitär': '🔧',\n      'elektrik': '⚡'\n    }[branch] || '🔨';\n    message += `${emoji} *${branch}:* ${count} Aufträge\\n`;\n  });\n  \n  // High priority orders\n  const urgentOrders = todaysOrders.filter(order => \n    parseInt(order.json.priority_score) >= 15\n  );\n  \n  if (urgentOrders.length > 0) {\n    message += `\\n🚨 *Dringende Aufträge:* ${urgentOrders.length}\\n`;\n    urgentOrders.forEach(order => {\n      message += `   • ${order.json.customer_name} (${order.json.priority_score}/20)\\n`;\n    });\n  }\n}\n\nmessage += `\\n🕐 *Stand:* ${new Date().toLocaleString('de-DE')}`;\n\nreturn [{ json: { message } }];"
+      },
+      "id": "format-today-message",
+      "name": "Format Today Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Top Monteure\nconst data = $input.all();\nlet message = '🏆 *Top Monteure Rankings*\\n\\n';\n\nif (data.length === 0) {\n  message += 'Keine Daten verfügbar. 📊\\n';\n} else {\n  // Sort by Performance Score (column M)\n  const sortedData = data.sort((a, b) => \n    parseFloat(b.json['Performance Score'] || 0) - parseFloat(a.json['Performance Score'] || 0)\n  );\n  \n  const topMonteure = sortedData.slice(0, 10);\n  \n  topMonteure.forEach((monteur, index) => {\n    const rank = index + 1;\n    const emoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;\n    const trend = monteur.json.Trend || '➡️';\n    \n    message += `${emoji} *${monteur.json.Monteur}* ${trend}\\n`;\n    message += `   💰 Umsatz: ${monteur.json['Umsatz Total']}€\\n`;\n    message += `   📊 Performance: ${monteur.json['Performance Score']}\\n`;\n    message += `   📈 Aufträge: ${monteur.json['Aufträge Total']}\\n\\n`;\n  });\n}\n\nmessage += `🕐 *Stand:* ${new Date().toLocaleString('de-DE')}`;\n\nreturn [{ json: { message } }];"
+      },
+      "id": "format-top-message",
+      "name": "Format Top Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 600]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Urgent Orders\nconst data = $input.all();\nlet message = '🚨 *Dringende Aufträge*\\n\\n';\n\nconst urgentOrders = data.filter(order => \n  parseInt(order.json.priority_score) >= 15 && \n  order.json.status !== 'abgeschlossen'\n);\n\nif (urgentOrders.length === 0) {\n  message += 'Keine dringenden Aufträge. ✅\\n';\n} else {\n  message += `⚠️ *${urgentOrders.length} dringende Aufträge gefunden!*\\n\\n`;\n  \n  urgentOrders.forEach(order => {\n    const timeDiff = Math.floor((new Date() - new Date(order.json.created_at)) / (1000 * 60 * 60));\n    const ageText = timeDiff < 24 ? `${timeDiff}h` : `${Math.floor(timeDiff/24)}d`;\n    \n    message += `🔴 *${order.json.customer_name}* (${order.json.priority_score}/20)\\n`;\n    message += `   📞 ${order.json.customer_phone}\\n`;\n    message += `   📍 ${order.json.full_address}\\n`;\n    message += `   🔧 ${order.json.branch}\\n`;\n    message += `   ⏰ Alter: ${ageText}\\n`;\n    message += `   📝 ${order.json.description}\\n`;\n    if (order.json.maps_link) {\n      message += `   [📍 Navigation](${order.json.maps_link})\\n`;\n    }\n    message += '\\n';\n  });\n}\n\nmessage += `🕐 *Stand:* ${new Date().toLocaleString('de-DE')}`;\n\nreturn [{ json: { message } }];"
+      },
+      "id": "format-urgent-message",
+      "name": "Format Urgent Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 800]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$json.message.chat.id}}",
+        "text": "={{$json.message}}",
+        "parseMode": "Markdown",
+        "disableWebPagePreview": true
+      },
+      "id": "send-response",
+      "name": "Send Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1120, 500]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$json.message.chat.id}}",
+        "text": "❓ *Unbekannter Befehl*\\n\\nVerfügbare Befehle:\\n• `/stats` - Dashboard Statistiken\\n• `/today` - Heutige Aufträge\\n• `/top` - Top Monteure\\n• `/urgent` - Dringende Aufträge\\n\\nℹ️ Für Hilfe kontaktieren Sie den Administrator.",
+        "parseMode": "Markdown"
+      },
+      "id": "send-help",
+      "name": "Send Help",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [680, 1000]
+    },
+    {
+      "parameters": {
+        "cron": "0 18 * * *",
+        "triggerAtSecond": 0
+      },
+      "id": "daily-report-trigger",
+      "name": "Daily Report Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 1200]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "read",
+        "sheetId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Berichte",
+        "range": "A2:M2"
+      },
+      "id": "get-daily-report",
+      "name": "Get Daily Report",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [460, 1200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Daily Report\nconst data = $input.first().json;\nconst [datum, umsatz, auftraege, durchschnitt, rohrreinigung, heizung, sanitaer, elektrik, barzahlungen, provisionen, monteure, conversion, performance] = data;\n\nlet message = '📊 *Tagesbericht AMP*\\n\\n';\nmessage += `📅 *Datum:* ${new Date().toLocaleDateString('de-DE')}\\n\\n`;\nmessage += `💰 *Umsatz Gesamt:* ${umsatz}€\\n`;\nmessage += `📋 *Aufträge:* ${auftraege}\\n`;\nmessage += `📈 *Durchschnitt:* ${durchschnitt}€\\n`;\nmessage += `📊 *Conversion:* ${conversion}%\\n\\n`;\n\nmessage += `🔧 *Nach Branchen:*\\n`;\nmessage += `🚿 Rohrreinigung: ${rohrreinigung}€\\n`;\nmessage += `🔥 Heizung: ${heizung}€\\n`;\nmessage += `🔧 Sanitär: ${sanitaer}€\\n`;\nmessage += `⚡ Elektrik: ${elektrik}€\\n\\n`;\n\nmessage += `💵 *Barzahlungen:* ${barzahlungen}€\\n`;\nmessage += `🎯 *Provisionen:* ${provisionen}€\\n`;\nmessage += `👥 *Aktive Monteure:* ${monteure}\\n`;\nmessage += `🚀 *Performance Score:* ${performance}\\n\\n`;\n\n// Add motivational message based on performance\nif (performance > 80) {\n  message += '🎉 *Ausgezeichnete Leistung heute!*';\n} else if (performance > 60) {\n  message += '👍 *Gute Arbeit heute!*';\n} else {\n  message += '💪 *Morgen wird besser!*';\n}\n\nreturn [{ json: { message } }];"
+      },
+      "id": "format-daily-report",
+      "name": "Format Daily Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 1200]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ADMIN_CHAT_ID}}",
+        "text": "={{$json.message}}",
+        "parseMode": "Markdown"
+      },
+      "id": "send-daily-report",
+      "name": "Send Daily Report",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [900, 1200]
+    },
+    {
+      "parameters": {
+        "cron": "0 8 * * 1",
+        "triggerAtSecond": 0
+      },
+      "id": "weekly-report-trigger",
+      "name": "Weekly Report Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [240, 1400]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "read",
+        "sheetId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Berichte",
+        "range": "A2:M8"
+      },
+      "id": "get-weekly-report",
+      "name": "Get Weekly Report",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [460, 1400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Weekly Report\nconst data = $input.all();\nconst lastWeek = data.slice(-7); // Last 7 days\n\nlet totalUmsatz = 0;\nlet totalAuftraege = 0;\nlet totalProvisionen = 0;\nlet totalRohrreinigung = 0;\nlet totalHeizung = 0;\n\nlastWeek.forEach(day => {\n  const [datum, umsatz, auftraege, durchschnitt, rohrreinigung, heizung, sanitaer, elektrik, barzahlungen, provisionen] = day.json;\n  totalUmsatz += parseFloat(umsatz) || 0;\n  totalAuftraege += parseInt(auftraege) || 0;\n  totalProvisionen += parseFloat(provisionen) || 0;\n  totalRohrreinigung += parseFloat(rohrreinigung) || 0;\n  totalHeizung += parseFloat(heizung) || 0;\n});\n\nconst durchschnittTaeglich = totalUmsatz / 7;\nconst durchschnittAuftrag = totalAuftraege > 0 ? totalUmsatz / totalAuftraege : 0;\n\nlet message = '📊 *Wochenbericht AMP*\\n\\n';\nmessage += `📅 *Woche:* ${new Date().toLocaleDateString('de-DE')}\\n\\n`;\nmessage += `💰 *Umsatz Gesamt:* ${totalUmsatz.toFixed(2)}€\\n`;\nmessage += `📋 *Aufträge Gesamt:* ${totalAuftraege}\\n`;\nmessage += `📈 *Durchschnitt/Tag:* ${durchschnittTaeglich.toFixed(2)}€\\n`;\nmessage += `💎 *Durchschnitt/Auftrag:* ${durchschnittAuftrag.toFixed(2)}€\\n`;\nmessage += `🎯 *Provisionen:* ${totalProvisionen.toFixed(2)}€\\n\\n`;\n\nmessage += `🔧 *Top Branchen:*\\n`;\nmessage += `🚿 Rohrreinigung: ${totalRohrreinigung.toFixed(2)}€\\n`;\nmessage += `🔥 Heizung: ${totalHeizung.toFixed(2)}€\\n\\n`;\n\n// Weekly goals\nconst weeklyGoal = 25000;\nconst achievement = (totalUmsatz / weeklyGoal) * 100;\n\nmessage += `🎯 *Wochenziel:* ${weeklyGoal}€\\n`;\nmessage += `📊 *Erreicht:* ${achievement.toFixed(1)}%\\n\\n`;\n\nif (achievement >= 100) {\n  message += '🏆 *Wochenziel übertroffen! Fantastische Leistung!*';\n} else if (achievement >= 80) {\n  message += '💪 *Sehr gute Woche! Fast am Ziel!*';\n} else {\n  message += '🚀 *Nächste Woche packen wir es!*';\n}\n\nreturn [{ json: { message } }];"
+      },
+      "id": "format-weekly-report",
+      "name": "Format Weekly Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 1400]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ADMIN_CHAT_ID}}",
+        "text": "={{$json.message}}",
+        "parseMode": "Markdown"
+      },
+      "id": "send-weekly-report",
+      "name": "Send Weekly Report",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [900, 1400]
+    }
+  ],
+  "connections": {
+    "telegram-webhook": {
+      "main": [
+        [
+          {
+            "node": "command-stats",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "command-today",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "command-top",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "command-urgent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "send-help",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "command-stats": {
+      "main": [
+        [
+          {
+            "node": "get-dashboard-data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "command-today": {
+      "main": [
+        [
+          {
+            "node": "get-todays-orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "command-top": {
+      "main": [
+        [
+          {
+            "node": "get-monteur-rankings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "command-urgent": {
+      "main": [
+        [
+          {
+            "node": "get-urgent-orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-dashboard-data": {
+      "main": [
+        [
+          {
+            "node": "format-stats-message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-todays-orders": {
+      "main": [
+        [
+          {
+            "node": "format-today-message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-monteur-rankings": {
+      "main": [
+        [
+          {
+            "node": "format-top-message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-urgent-orders": {
+      "main": [
+        [
+          {
+            "node": "format-urgent-message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format-stats-message": {
+      "main": [
+        [
+          {
+            "node": "send-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format-today-message": {
+      "main": [
+        [
+          {
+            "node": "send-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format-top-message": {
+      "main": [
+        [
+          {
+            "node": "send-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format-urgent-message": {
+      "main": [
+        [
+          {
+            "node": "send-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "daily-report-trigger": {
+      "main": [
+        [
+          {
+            "node": "get-daily-report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-daily-report": {
+      "main": [
+        [
+          {
+            "node": "format-daily-report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format-daily-report": {
+      "main": [
+        [
+          {
+            "node": "send-daily-report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "weekly-report-trigger": {
+      "main": [
+        [
+          {
+            "node": "get-weekly-report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-weekly-report": {
+      "main": [
+        [
+          {
+            "node": "format-weekly-report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format-weekly-report": {
+      "main": [
+        [
+          {
+            "node": "send-weekly-report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": {},
+  "tags": ["amp", "telegram", "bot", "reports", "automation"],
+  "triggerCount": 3,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
