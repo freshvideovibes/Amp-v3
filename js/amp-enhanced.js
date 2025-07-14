@@ -5,10 +5,20 @@ class AMPEnhanced {
         this.offlineQueue = [];
         this.isOnline = navigator.onLine;
         this.syncInProgress = false;
+        this.cache = new Map();
+        this.performance = {
+            requests: 0,
+            errors: 0,
+            cacheHits: 0,
+            startTime: Date.now()
+        };
         this.initializeApp();
     }
 
     initializeApp() {
+        // Initialize performance monitoring
+        this.setupPerformanceMonitoring();
+
         // Initialize Telegram Web App
         if (window.Telegram?.WebApp) {
             Telegram.WebApp.ready();
@@ -23,21 +33,52 @@ class AMPEnhanced {
         
         // Setup auto-sync
         this.setupAutoSync();
+        
+        // Setup cache cleanup
+        this.setupCacheCleanup();
+    }
+
+    setupPerformanceMonitoring() {
+        // Monitor performance metrics
+        setInterval(() => {
+            const metrics = {
+                ...this.performance,
+                uptime: Date.now() - this.performance.startTime,
+                cacheSize: this.cache.size,
+                queueSize: this.offlineQueue.length,
+                memoryUsage: performance.memory ? performance.memory.usedJSHeapSize : 0
+            };
+            
+            // Send metrics to n8n for monitoring
+            if (this.performance.requests > 0) {
+                this.sendToN8N('report', { type: 'performance', metrics }, { silent: true });
+            }
+        }, 300000); // Every 5 minutes
     }
 
     setupTelegramHandlers() {
         const tg = window.Telegram.WebApp;
         
-        // Haptic feedback for better UX
+        // Enhanced haptic feedback
         tg.HapticFeedback.impactOccurred('light');
         
-        // Theme integration
-        document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color);
-        document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color);
-        document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color);
-        document.documentElement.style.setProperty('--tg-theme-link-color', tg.themeParams.link_color);
-        document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color);
-        document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color);
+        // Theme integration with CSS variables
+        const theme = tg.themeParams;
+        const root = document.documentElement;
+        
+        Object.entries(theme).forEach(([key, value]) => {
+            root.style.setProperty(`--tg-${key.replace(/_/g, '-')}`, value);
+        });
+        
+        // Setup viewport
+        tg.expand();
+        tg.MainButton.hide();
+        tg.BackButton.hide();
+        
+        // Listen for theme changes
+        tg.onEvent('themeChanged', () => {
+            this.setupTelegramHandlers();
+        });
     }
 
     setupOfflineHandlers() {
@@ -61,16 +102,59 @@ class AMPEnhanced {
         }, this.config.app.syncInterval);
     }
 
-    // Enhanced n8n Integration with retry mechanism
+    setupCacheCleanup() {
+        setInterval(() => {
+            this.cleanupCache();
+        }, 600000); // Every 10 minutes
+    }
+
+    cleanupCache() {
+        const now = Date.now();
+        const maxAge = 300000; // 5 minutes
+        
+        for (const [key, value] of this.cache.entries()) {
+            if (now - value.timestamp > maxAge) {
+                this.cache.delete(key);
+            }
+        }
+    }
+
+    // Enhanced caching system
+    getCachedData(key) {
+        const cached = this.cache.get(key);
+        if (cached && Date.now() - cached.timestamp < 300000) {
+            this.performance.cacheHits++;
+            return cached.data;
+        }
+        return null;
+    }
+
+    setCachedData(key, data) {
+        this.cache.set(key, {
+            data,
+            timestamp: Date.now()
+        });
+    }
+
+    // Enhanced n8n Integration with retry mechanism and caching
     async sendToN8N(endpoint, data, options = {}) {
         const url = `${this.config.n8n.baseUrl}${this.config.n8n.webhooks[endpoint]}`;
+        
+        // Check cache for idempotent operations
+        const cacheKey = `${endpoint}:${JSON.stringify(data)}`;
+        if (options.cacheable) {
+            const cached = this.getCachedData(cacheKey);
+            if (cached) return cached;
+        }
         
         // Add timestamp and user context
         const enrichedData = {
             ...data,
             timestamp: new Date().toISOString(),
             userContext: this.getUserContext(),
-            appVersion: this.config.app.version
+            appVersion: this.config.app.version,
+            sessionId: this.getSessionId(),
+            performance: this.getPerformanceSnapshot()
         };
 
         if (!this.isOnline) {
@@ -82,13 +166,16 @@ class AMPEnhanced {
             headers: {
                 'Content-Type': 'application/json',
                 'User-Agent': `AMP-App/${this.config.app.version}`,
+                'X-Request-ID': this.generateRequestId(),
                 ...options.headers
             },
             body: JSON.stringify(enrichedData),
             signal: AbortSignal.timeout(this.config.n8n.timeout)
         };
 
+        this.performance.requests++;
         let lastError;
+        
         for (let attempt = 0; attempt < this.config.n8n.retryAttempts; attempt++) {
             try {
                 const response = await fetch(url, requestOptions);
@@ -99,14 +186,21 @@ class AMPEnhanced {
 
                 const result = await response.json();
                 
+                // Cache successful responses
+                if (options.cacheable) {
+                    this.setCachedData(cacheKey, result);
+                }
+                
                 // Success feedback
-                if (options.successMessage) {
+                if (options.successMessage && !options.silent) {
                     this.showNotification(options.successMessage, 'success');
                 }
 
                 return result;
+                
             } catch (error) {
                 lastError = error;
+                this.performance.errors++;
                 
                 if (attempt < this.config.n8n.retryAttempts - 1) {
                     await this.delay(this.config.n8n.retryDelay * Math.pow(2, attempt));
@@ -118,13 +212,19 @@ class AMPEnhanced {
         this.addToOfflineQueue(endpoint, enrichedData, options);
         
         const errorMessage = options.errorMessage || 'Verbindungsfehler';
-        this.showNotification(`❌ ${errorMessage}: ${lastError.message}`, 'error');
+        if (!options.silent) {
+            this.showNotification(`❌ ${errorMessage}: ${lastError.message}`, 'error');
+        }
         
         throw lastError;
     }
 
-    // Enhanced Google Maps Integration
+    // Enhanced Google Maps Integration with caching
     async geocodeAddress(address) {
+        const cacheKey = `geocode:${address}`;
+        const cached = this.getCachedData(cacheKey);
+        if (cached) return cached;
+
         if (!this.config.google.maps.apiKey) {
             console.warn('Google Maps API Key nicht konfiguriert');
             return this.generateSimpleMapsLink(address);
@@ -137,19 +237,23 @@ class AMPEnhanced {
 
             if (data.status === 'OK' && data.results.length > 0) {
                 const result = data.results[0];
-                return {
+                const geocoded = {
                     formatted_address: result.formatted_address,
                     coordinates: result.geometry.location,
                     place_id: result.place_id,
                     maps_link: `https://www.google.com/maps/place/?q=place_id:${result.place_id}`,
-                    components: result.address_components
+                    components: result.address_components,
+                    viewport: result.geometry.viewport
                 };
+                
+                this.setCachedData(cacheKey, geocoded);
+                return geocoded;
             }
         } catch (error) {
             console.error('Geocoding error:', error);
         }
-
-        // Fallback to simple maps link
+        
+        // Fallback to simple link
         return this.generateSimpleMapsLink(address);
     }
 
@@ -208,57 +312,182 @@ class AMPEnhanced {
 
     // Enhanced Order Processing
     async processOrder(orderData) {
-        // Enrich order with geocoding
-        const locationData = await this.geocodeAddress(orderData.address);
-        
-        const enrichedOrder = {
-            ...orderData,
-            id: this.generateOrderId(),
-            created_at: new Date().toISOString(),
-            location: locationData,
-            static_map: this.generateStaticMap(orderData.address),
-            estimated_duration: null // Will be filled by route calculation
-        };
-
-        // Calculate route if monteur is assigned
-        if (orderData.monteur_id) {
-            const monteur = await this.getMonteurById(orderData.monteur_id);
-            if (monteur && monteur.current_location) {
-                const route = await this.calculateRoute(monteur.current_location, orderData.address);
-                enrichedOrder.estimated_duration = route?.duration?.text || null;
-            }
+        try {
+            // Validate data
+            this.validateOrderData(orderData);
+            
+            // Enrich with location data
+            const location = await this.geocodeAddress(`${orderData.address}, ${orderData.zip} ${orderData.city}, ${orderData.country}`);
+            
+            // Calculate priority score
+            const priorityScore = this.calculatePriorityScore(orderData);
+            
+            const enrichedOrderData = {
+                ...orderData,
+                id: this.generateId(),
+                location,
+                priorityScore,
+                processed_at: new Date().toISOString()
+            };
+            
+            // Send to n8n
+            const result = await this.sendToN8N('orders', enrichedOrderData, {
+                successMessage: '✅ Auftrag erfolgreich übermittelt',
+                errorMessage: 'Fehler beim Übermitteln des Auftrags'
+            });
+            
+            // Store locally
+            this.storeOrder(enrichedOrderData);
+            
+            return result;
+            
+        } catch (error) {
+            console.error('Order processing error:', error);
+            throw error;
         }
-
-        // Send to n8n
-        await this.sendToN8N('orders', enrichedOrder, {
-            successMessage: '✅ Auftrag erfolgreich übertragen',
-            errorMessage: 'Fehler beim Übertragen des Auftrags'
-        });
-
-        return enrichedOrder;
     }
 
-    // Revenue Processing with Enhanced Analytics
-    async processRevenue(revenueData) {
-        const enrichedRevenue = {
-            ...revenueData,
-            id: this.generateRevenueId(),
-            processed_at: new Date().toISOString(),
-            calculated_metrics: this.calculateRevenueMetrics(revenueData)
+    validateOrderData(data) {
+        const requiredFields = ['name', 'phone', 'address', 'branch', 'description'];
+        
+        for (const field of requiredFields) {
+            if (!data[field] || data[field].trim() === '') {
+                throw new Error(`${field} ist erforderlich`);
+            }
+        }
+        
+        // Phone validation
+        if (!/^\+?[\d\s\-\(\)]+$/.test(data.phone)) {
+            throw new Error('Ungültige Telefonnummer');
+        }
+        
+        // Address validation
+        if (data.address.length < 5) {
+            throw new Error('Adresse zu kurz');
+        }
+    }
+
+    calculatePriorityScore(orderData) {
+        let score = 0;
+        
+        // Branch priority
+        const branchPriority = {
+            'rohrreinigung': 10,
+            'heizung': 8,
+            'sanitär': 6,
+            'elektrik': 4
         };
+        
+        score += branchPriority[orderData.branch] || 3;
+        
+        // Time priority
+        if (orderData.preferred_time && orderData.preferred_time.includes('dringend')) {
+            score += 5;
+        }
+        
+        // Description keywords
+        const urgentKeywords = ['notfall', 'dringend', 'sofort', 'wasser', 'heizung kaputt'];
+        if (urgentKeywords.some(keyword => orderData.description.toLowerCase().includes(keyword))) {
+            score += 3;
+        }
+        
+        return score;
+    }
 
-        await this.sendToN8N('revenue', enrichedRevenue, {
-            successMessage: '✅ Umsatz erfolgreich gemeldet',
-            errorMessage: 'Fehler bei der Umsatzmeldung'
-        });
+    // Enhanced revenue processing
+    async processRevenue(revenueData) {
+        try {
+            // Validate revenue data
+            this.validateRevenueData(revenueData);
+            
+            // Calculate metrics
+            const calculatedMetrics = this.calculateRevenueMetrics(revenueData);
+            
+            const enrichedRevenueData = {
+                ...revenueData,
+                id: this.generateId(),
+                calculated_metrics: calculatedMetrics,
+                processed_at: new Date().toISOString()
+            };
+            
+            // Send to n8n
+            const result = await this.sendToN8N('revenue', enrichedRevenueData, {
+                successMessage: '💰 Umsatz erfolgreich gemeldet',
+                errorMessage: 'Fehler beim Melden des Umsatzes'
+            });
+            
+            // Store locally
+            this.storeRevenue(enrichedRevenueData);
+            
+            return result;
+            
+        } catch (error) {
+            console.error('Revenue processing error:', error);
+            throw error;
+        }
+    }
 
-        return enrichedRevenue;
+    validateRevenueData(data) {
+        if (!data.auftragsnummer || !data.betrag || !data.zahlungsart) {
+            throw new Error('Auftragsnummer, Betrag und Zahlungsart sind erforderlich');
+        }
+        
+        if (isNaN(parseFloat(data.betrag)) || parseFloat(data.betrag) <= 0) {
+            throw new Error('Ungültiger Betrag');
+        }
+    }
+
+    calculateRevenueMetrics(data) {
+        const grossAmount = parseFloat(data.betrag);
+        const taxRate = 0.19; // 19% VAT
+        const netAmount = grossAmount / (1 + taxRate);
+        
+        // Commission calculation based on branch
+        const commissionRates = {
+            'rohrreinigung': 0.15,
+            'heizung': 0.12,
+            'sanitär': 0.10,
+            'elektrik': 0.08
+        };
+        
+        const commissionRate = commissionRates[data.branche] || 0.10;
+        const commission = netAmount * commissionRate;
+        
+        // Category based on amount
+        let category = 'klein';
+        if (grossAmount > 1000) category = 'groß';
+        else if (grossAmount > 500) category = 'mittel';
+        
+        return {
+            net_amount: netAmount.toFixed(2),
+            commission: commission.toFixed(2),
+            tax_amount: (grossAmount - netAmount).toFixed(2),
+            category,
+            commission_rate: commissionRate,
+            priority_score: this.calculateRevenuePriority(data, grossAmount)
+        };
+    }
+
+    calculateRevenuePriority(data, amount) {
+        let score = Math.min(amount / 100, 20); // Max 20 points from amount
+        
+        // Payment method priority
+        const paymentPriority = {
+            'bar': 10,
+            'überweisung': 8,
+            'karte': 6,
+            'rechnung': 4
+        };
+        
+        score += paymentPriority[data.zahlungsart] || 2;
+        
+        return Math.round(score);
     }
 
     // Offline Queue Management
     addToOfflineQueue(endpoint, data, options) {
         const queueItem = {
-            id: this.generateQueueId(),
+            id: this.generateId(),
             endpoint,
             data,
             options,
@@ -325,44 +554,45 @@ class AMPEnhanced {
         };
     }
 
-    generateOrderId() {
+    generateId() {
         return 'AMP-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     }
 
-    generateRevenueId() {
-        return 'REV-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    generateRequestId() {
+        return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
 
-    generateQueueId() {
-        return 'QUE-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-    }
-
-    calculateRevenueMetrics(data) {
+    getPerformanceSnapshot() {
         return {
-            net_amount: parseFloat(data.betrag) * 0.81, // Assuming 19% VAT
-            commission: parseFloat(data.betrag) * 0.15, // 15% commission
-            category: this.categorizeBranch(data.branche),
-            priority_score: this.calculatePriorityScore(data)
+            requests: this.performance.requests,
+            errors: this.performance.errors,
+            cacheHits: this.performance.cacheHits,
+            uptime: Date.now() - this.performance.startTime
         };
     }
 
-    categorizeBranch(branch) {
-        const categories = {
-            'rohrreinigung': 'Sanitär',
-            'heizung': 'Heizung',
-            'elektrik': 'Elektrik',
-            'dachreparatur': 'Dach',
-            'malerarbeiten': 'Malerei'
-        };
-        return categories[branch] || 'Sonstiges';
+    // Enhanced utility functions
+    getSessionId() {
+        let sessionId = sessionStorage.getItem('amp_session_id');
+        if (!sessionId) {
+            sessionId = this.generateId();
+            sessionStorage.setItem('amp_session_id', sessionId);
+        }
+        return sessionId;
     }
 
-    calculatePriorityScore(data) {
-        let score = 0;
-        if (parseFloat(data.betrag) > 500) score += 2;
-        if (data.zahlungsart === 'bar') score += 1;
-        if (data.land === 'AT') score += 1;
-        return score;
+    storeOrder(order) {
+        // Implement local storage for orders
+        const orders = JSON.parse(localStorage.getItem('amp_orders') || '[]');
+        orders.push(order);
+        localStorage.setItem('amp_orders', JSON.stringify(orders));
+    }
+
+    storeRevenue(revenue) {
+        // Implement local storage for revenues
+        const revenues = JSON.parse(localStorage.getItem('amp_revenues') || '[]');
+        revenues.push(revenue);
+        localStorage.setItem('amp_revenues', JSON.stringify(revenues));
     }
 
     loadOfflineQueue() {

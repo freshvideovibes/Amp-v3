@@ -1,0 +1,500 @@
+{
+  "name": "AMP - Enhanced Order Management",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "amp-orders",
+        "responseMode": "responseNode",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "webhook-orders",
+      "name": "Webhook - Orders",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "amp-orders-webhook"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "order_id",
+              "value": "={{$json.id}}"
+            },
+            {
+              "name": "customer_name",
+              "value": "={{$json.name}}"
+            },
+            {
+              "name": "customer_phone",
+              "value": "={{$json.phone}}"
+            },
+            {
+              "name": "customer_email",
+              "value": "={{$json.email || ''}}"
+            },
+            {
+              "name": "full_address",
+              "value": "={{$json.address}}, {{$json.zip}} {{$json.city}}, {{$json.country}}"
+            },
+            {
+              "name": "branch",
+              "value": "={{$json.branch}}"
+            },
+            {
+              "name": "description",
+              "value": "={{$json.description}}"
+            },
+            {
+              "name": "preferred_time",
+              "value": "={{$json.preferred_time}}"
+            },
+            {
+              "name": "priority_score",
+              "value": "={{$json.priorityScore}}"
+            },
+            {
+              "name": "created_at",
+              "value": "={{$json.timestamp}}"
+            },
+            {
+              "name": "processed_at",
+              "value": "={{$json.processed_at}}"
+            },
+            {
+              "name": "telegram_user",
+              "value": "={{$json.userContext.telegram_id}}"
+            },
+            {
+              "name": "telegram_username",
+              "value": "={{$json.userContext.username}}"
+            },
+            {
+              "name": "status",
+              "value": "neu"
+            },
+            {
+              "name": "maps_link",
+              "value": "={{$json.location.maps_link}}"
+            },
+            {
+              "name": "coordinates",
+              "value": "={{$json.location.coordinates ? $json.location.coordinates.lat + ',' + $json.location.coordinates.lng : ''}}"
+            },
+            {
+              "name": "formatted_address",
+              "value": "={{$json.location.formatted_address}}"
+            },
+            {
+              "name": "place_id",
+              "value": "={{$json.location.place_id}}"
+            },
+            {
+              "name": "app_version",
+              "value": "={{$json.appVersion}}"
+            },
+            {
+              "name": "session_id",
+              "value": "={{$json.sessionId}}"
+            },
+            {
+              "name": "request_id",
+              "value": "={{$headers['x-request-id']}}"
+            }
+          ]
+        }
+      },
+      "id": "process-order-data",
+      "name": "Process Order Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Aufträge",
+        "columnToMatchOn": "order_id",
+        "valueInputMode": "defineBelow",
+        "valuesToAppend": {
+          "values": [
+            {
+              "A": "={{$json.order_id}}",
+              "B": "={{$json.customer_name}}",
+              "C": "={{$json.customer_phone}}",
+              "D": "={{$json.customer_email}}",
+              "E": "={{$json.full_address}}",
+              "F": "={{$json.branch}}",
+              "G": "={{$json.description}}",
+              "H": "={{$json.preferred_time}}",
+              "I": "={{$json.priority_score}}",
+              "J": "={{$json.created_at}}",
+              "K": "={{$json.processed_at}}",
+              "L": "={{$json.telegram_user}}",
+              "M": "={{$json.telegram_username}}",
+              "N": "={{$json.status}}",
+              "O": "={{$json.maps_link}}",
+              "P": "={{$json.coordinates}}",
+              "Q": "={{$json.formatted_address}}",
+              "R": "={{$json.place_id}}",
+              "S": "={{$json.app_version}}",
+              "T": "={{$json.session_id}}",
+              "U": "={{$json.request_id}}"
+            }
+          ]
+        }
+      },
+      "id": "google-sheets-append",
+      "name": "Google Sheets - Add Order",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ADMIN_CHAT_ID}}",
+        "text": "🆕 *NEUER AUFTRAG*\n\n*Auftrag:* `{{$json.order_id}}`\n*Kunde:* {{$json.customer_name}}\n*Telefon:* {{$json.customer_phone}}\n*Adresse:* {{$json.full_address}}\n*Branche:* {{$json.branch}}\n*Beschreibung:* {{$json.description}}\n*Priorität:* {{$json.priority_score}}/20\n*Wunschzeit:* {{$json.preferred_time}}\n*Bearbeiter:* @{{$json.telegram_username}}\n\n[📍 Google Maps öffnen]({{$json.maps_link}})\n\n*Erstellt:* {{$json.created_at}}",
+        "parseMode": "Markdown",
+        "disableWebPagePreview": false
+      },
+      "id": "telegram-admin-notification",
+      "name": "Telegram - Admin Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [680, 480]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false
+          },
+          "string": [
+            {
+              "value1": "={{$json.branch}}",
+              "operation": "equal",
+              "value2": "rohrreinigung"
+            }
+          ]
+        }
+      },
+      "id": "check-branch-rohrreinigung",
+      "name": "Branch: Rohrreinigung",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ROHRREINIGUNG_CHANNEL}}",
+        "text": "🚿 *ROHRREINIGUNG AUFTRAG*\n\n*ID:* {{$json.order_id}}\n*Kunde:* {{$json.customer_name}}\n*Telefon:* {{$json.customer_phone}}\n*Adresse:* {{$json.full_address}}\n*Priorität:* {{$json.priority_score}}/20\n\n*Beschreibung:*\n{{$json.description}}\n\n*Wunschzeit:* {{$json.preferred_time}}\n\n[📍 Navigation starten]({{$json.maps_link}})\n\n⚡ *Schnell zugreifen!*",
+        "parseMode": "Markdown",
+        "disableWebPagePreview": false
+      },
+      "id": "telegram-rohrreinigung-notification",
+      "name": "Telegram - Rohrreinigung Channel",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false
+          },
+          "string": [
+            {
+              "value1": "={{$json.branch}}",
+              "operation": "equal",
+              "value2": "heizung"
+            }
+          ]
+        }
+      },
+      "id": "check-branch-heizung",
+      "name": "Branch: Heizung",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 500]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_HEIZUNG_CHANNEL}}",
+        "text": "🔥 *HEIZUNG AUFTRAG*\n\n*ID:* {{$json.order_id}}\n*Kunde:* {{$json.customer_name}}\n*Telefon:* {{$json.customer_phone}}\n*Adresse:* {{$json.full_address}}\n*Priorität:* {{$json.priority_score}}/20\n\n*Problem:*\n{{$json.description}}\n\n*Wunschzeit:* {{$json.preferred_time}}\n\n[📍 Anfahrt planen]({{$json.maps_link}})\n\n🔥 *Heizung - Wichtig!*",
+        "parseMode": "Markdown",
+        "disableWebPagePreview": false
+      },
+      "id": "telegram-heizung-notification",
+      "name": "Telegram - Heizung Channel",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.priority_score}}",
+              "operation": "largerEqual",
+              "value2": 15
+            }
+          ]
+        }
+      },
+      "id": "check-high-priority",
+      "name": "High Priority Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 700]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_URGENT_CHANNEL}}",
+        "text": "🚨 *DRINGENDER AUFTRAG*\n\n*ID:* {{$json.order_id}}\n*Kunde:* {{$json.customer_name}}\n*Telefon:* {{$json.customer_phone}}\n*Adresse:* {{$json.full_address}}\n*Branche:* {{$json.branch}}\n*Priorität:* {{$json.priority_score}}/20\n\n*Beschreibung:*\n{{$json.description}}\n\n*Wunschzeit:* {{$json.preferred_time}}\n\n[📍 SOFORT NAVIGATION]({{$json.maps_link}})\n\n🚨 *SOFORTIGE BEARBEITUNG ERFORDERLICH!*",
+        "parseMode": "Markdown",
+        "disableWebPagePreview": false
+      },
+      "id": "telegram-urgent-notification",
+      "name": "Telegram - Urgent Channel",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1120, 600]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": "={{$env.GOOGLE_SHEETS_ID}}",
+        "sheetName": "Aktivitäten",
+        "valueInputMode": "defineBelow",
+        "valuesToAppend": {
+          "values": [
+            {
+              "A": "={{$json.order_id}}",
+              "B": "order_created",
+              "C": "={{$json.created_at}}",
+              "D": "={{$json.telegram_user}}",
+              "E": "Auftrag erstellt",
+              "F": "={{$json.branch}}",
+              "G": "={{$json.priority_score}}",
+              "H": "={{$json.session_id}}",
+              "I": "={{$json.request_id}}"
+            }
+          ]
+        }
+      },
+      "id": "google-sheets-activity-log",
+      "name": "Google Sheets - Activity Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [900, 900]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$json.userContext.telegram_id}}",
+        "text": "✅ *Auftrag erfolgreich erstellt!*\n\n*Auftragsnummer:* `{{$json.order_id}}`\n*Status:* Neu\n*Priorität:* {{$json.priority_score}}/20\n\nIhr Auftrag wurde an unser Team weitergeleitet. Sie werden über den Fortschritt informiert.\n\n[📍 Karte anzeigen]({{$json.maps_link}})",
+        "parseMode": "Markdown",
+        "disableWebPagePreview": false
+      },
+      "id": "telegram-customer-confirmation",
+      "name": "Telegram - Customer Confirmation",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1120, 800]
+    },
+    {
+      "parameters": {
+        "responseCode": 200,
+        "responseBody": {
+          "success": true,
+          "order_id": "={{$json.order_id}}",
+          "status": "created",
+          "priority_score": "={{$json.priority_score}}",
+          "maps_link": "={{$json.maps_link}}",
+          "timestamp": "={{$json.processed_at}}"
+        }
+      },
+      "id": "response-success",
+      "name": "Response - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.coordinates}}",
+              "operation": "isEmpty"
+            }
+          ]
+        }
+      },
+      "id": "check-geocoding-failed",
+      "name": "Geocoding Failed Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 500]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{$env.TELEGRAM_ADMIN_CHAT_ID}}",
+        "text": "⚠️ *GEOCODING FEHLGESCHLAGEN*\n\n*Auftrag:* {{$json.order_id}}\n*Adresse:* {{$json.full_address}}\n\nBitte Adresse manuell prüfen und korrigieren.\n\n*Kunde:* {{$json.customer_name}}\n*Telefon:* {{$json.customer_phone}}",
+        "parseMode": "Markdown"
+      },
+      "id": "telegram-geocoding-alert",
+      "name": "Telegram - Geocoding Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [680, 600]
+    }
+  ],
+  "connections": {
+    "webhook-orders": {
+      "main": [
+        [
+          {
+            "node": "process-order-data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "process-order-data": {
+      "main": [
+        [
+          {
+            "node": "google-sheets-append",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "telegram-admin-notification",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-branch-rohrreinigung",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-branch-heizung",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-high-priority",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "google-sheets-activity-log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "telegram-customer-confirmation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "check-geocoding-failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "google-sheets-append": {
+      "main": [
+        [
+          {
+            "node": "response-success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-branch-rohrreinigung": {
+      "main": [
+        [
+          {
+            "node": "telegram-rohrreinigung-notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-branch-heizung": {
+      "main": [
+        [
+          {
+            "node": "telegram-heizung-notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-high-priority": {
+      "main": [
+        [
+          {
+            "node": "telegram-urgent-notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check-geocoding-failed": {
+      "main": [
+        [
+          {
+            "node": "telegram-geocoding-alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "amp-error-handler"
+  },
+  "staticData": {},
+  "tags": ["amp", "orders", "telegram", "sheets"],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
