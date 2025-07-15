@@ -2,35 +2,76 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
     <title>AMP - AuftragsManager Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* iOS Dark Theme Colors */
+            --ios-bg-primary: #000000;
+            --ios-bg-secondary: #1c1c1e;
+            --ios-bg-tertiary: #2c2c2e;
+            --ios-bg-elevated: #3a3a3c;
+            --ios-text-primary: #ffffff;
+            --ios-text-secondary: #ebebf5;
+            --ios-text-tertiary: #ebebf560;
+            --ios-label-secondary: #ebebf599;
+            --ios-separator: #38383a;
+            --ios-blue: #007aff;
+            --ios-blue-dark: #0a84ff;
+            --ios-green: #30d158;
+            --ios-red: #ff453a;
+            --ios-orange: #ff9f0a;
+            --ios-yellow: #ffd60a;
+            --ios-purple: #bf5af2;
+            --ios-pink: #ff375f;
+            --ios-teal: #40c8e0;
+            --ios-indigo: #5e5ce6;
+            --ios-gray: #8e8e93;
+            --ios-blur: rgba(28, 28, 30, 0.8);
+            --ios-shadow: rgba(0, 0, 0, 0.4);
+            --ios-border: rgba(84, 84, 88, 0.4);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+            background: var(--ios-bg-primary);
+            color: var(--ios-text-primary);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: flex-start;
             padding: 10px;
             margin: 0;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .container {
-            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            background: var(--ios-bg-secondary);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px var(--ios-shadow), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+            border: 1px solid var(--ios-border);
             max-width: 420px;
             width: 100%;
-            padding: 20px;
+            padding: 24px;
             position: relative;
             overflow: hidden;
             margin-top: 10px;
@@ -42,13 +83,14 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 3px;
-            background: var(--tg-theme-button-color, #007bff);
+            height: 2px;
+            background: var(--ios-blue);
+            border-radius: 20px 20px 0 0;
         }
 
         .screen {
             display: none;
-            animation: slideIn 0.3s ease-out;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .screen.active {
@@ -56,156 +98,271 @@
         }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.95);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .screen.fade-out {
+            animation: fadeOut 0.3s ease-in forwards;
+        }
+
+        @keyframes fadeOut {
+            from { 
+                opacity: 1; 
+                transform: translateY(0) scale(1);
+            }
+            to { 
+                opacity: 0; 
+                transform: translateY(-10px) scale(0.98);
+            }
         }
 
         h1 {
             text-align: center;
-            color: var(--tg-theme-text-color, #000000);
-            margin-bottom: 24px;
-            font-size: 20px;
-            font-weight: 600;
+            color: var(--ios-text-primary);
+            margin-bottom: 32px;
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+            text-shadow: none;
         }
 
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
-            margin-bottom: 6px;
-            color: var(--tg-theme-text-color, #000000);
+            margin-bottom: 8px;
+            color: var(--ios-text-secondary);
             font-weight: 500;
-            font-size: 14px;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: -0.2px;
+        }
+
+        .form-group:focus-within label {
+            color: var(--ios-blue);
+            transform: translateY(-2px);
         }
 
         select, input[type="text"], input[type="tel"], input[type="email"], input[type="number"], input[type="date"], input[type="time"], input[type="file"], textarea {
             width: 100%;
-            padding: 12px 14px;
-            border: 1px solid var(--tg-theme-hint-color, #999999);
-            border-radius: 8px;
+            padding: 15px 16px;
+            border: 1px solid var(--ios-separator);
+            border-radius: 12px;
             font-size: 16px;
-            transition: all 0.3s ease;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--ios-bg-tertiary);
+            color: var(--ios-text-primary);
+            font-family: inherit;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
         select:focus, input:focus, textarea:focus {
             outline: none;
-            border-color: var(--tg-theme-button-color, #007bff);
-            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+            border-color: var(--ios-blue);
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+            transform: translateY(-1px);
+            background: var(--ios-bg-elevated);
+        }
+
+        select::placeholder, input::placeholder, textarea::placeholder {
+            color: var(--ios-text-tertiary);
         }
 
         .btn {
             width: 100%;
-            padding: 12px;
-            background: var(--tg-theme-button-color, #007bff);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            padding: 16px 20px;
+            background: var(--ios-blue);
+            color: var(--ios-text-primary);
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: -0.2px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
         }
 
         .btn:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+            background: var(--ios-blue-dark);
         }
 
         .btn:active {
             transform: translateY(0);
+            background: var(--ios-blue);
         }
 
         .btn-secondary {
-            background: var(--tg-theme-secondary-bg-color, #6c757d);
-            color: var(--tg-theme-text-color, #ffffff);
+            background: var(--ios-bg-elevated);
+            color: var(--ios-text-primary);
+            border: 1px solid var(--ios-separator);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: var(--ios-bg-tertiary);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
 
         .btn-success {
-            background: #28a745;
-            color: #ffffff;
+            background: var(--ios-green);
+            color: var(--ios-text-primary);
+            box-shadow: 0 4px 15px rgba(48, 209, 88, 0.3);
+        }
+
+        .btn-success:hover {
+            background: #28c946;
+            box-shadow: 0 6px 20px rgba(48, 209, 88, 0.4);
         }
 
         .btn-danger {
-            background: #dc3545;
-            color: #ffffff;
+            background: var(--ios-red);
+            color: var(--ios-text-primary);
+            box-shadow: 0 4px 15px rgba(255, 69, 58, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: #ff3333;
+            box-shadow: 0 6px 20px rgba(255, 69, 58, 0.4);
         }
 
         .btn-warning {
-            background: #ffc107;
-            color: #212529;
+            background: var(--ios-orange);
+            color: var(--ios-text-primary);
+            box-shadow: 0 4px 15px rgba(255, 159, 10, 0.3);
+        }
+
+        .btn-warning:hover {
+            background: #ff8c00;
+            box-shadow: 0 6px 20px rgba(255, 159, 10, 0.4);
         }
 
         .back-btn {
-            background: transparent;
-            color: var(--tg-theme-button-color, #007bff);
-            border: 1px solid var(--tg-theme-button-color, #007bff);
-            padding: 8px 16px;
-            font-size: 14px;
-            margin-bottom: 16px;
+            background: rgba(0, 122, 255, 0.1);
+            color: var(--ios-blue);
+            border: 1px solid rgba(0, 122, 255, 0.3);
+            padding: 10px 18px;
+            font-size: 15px;
+            margin-bottom: 20px;
             width: auto;
-            border-radius: 6px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            letter-spacing: -0.2px;
         }
 
         .back-btn:hover {
-            background: var(--tg-theme-button-color, #007bff);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            background: var(--ios-blue);
+            color: var(--ios-text-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
         }
 
         .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 12px;
-            border-radius: 8px;
+            background: rgba(255, 69, 58, 0.15);
+            color: var(--ios-red);
+            padding: 12px 16px;
+            border-radius: 12px;
             margin-bottom: 16px;
-            border: 1px solid #f5c6cb;
-            font-size: 14px;
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: -0.2px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 12px;
-            border-radius: 8px;
+            background: rgba(48, 209, 88, 0.15);
+            color: var(--ios-green);
+            padding: 12px 16px;
+            border-radius: 12px;
             margin-bottom: 16px;
-            border: 1px solid #c3e6cb;
-            font-size: 14px;
+            border: 1px solid rgba(48, 209, 88, 0.3);
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: -0.2px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .card {
-            background: var(--tg-theme-bg-color, #ffffff);
-            border: 1px solid var(--tg-theme-hint-color, #e9ecef);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
+            background: var(--ios-bg-tertiary);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--ios-separator);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border-color: rgba(0, 122, 255, 0.3);
+            background: var(--ios-bg-elevated);
         }
 
         .card-title {
             font-weight: 600;
-            color: var(--tg-theme-text-color, #000000);
+            color: var(--ios-text-primary);
             margin-bottom: 8px;
-            font-size: 15px;
+            font-size: 16px;
+            letter-spacing: -0.2px;
         }
 
         .card-text {
-            color: var(--tg-theme-hint-color, #666666);
+            color: var(--ios-text-secondary);
             font-size: 14px;
             line-height: 1.4;
+            letter-spacing: -0.1px;
         }
 
         .stats-grid {
@@ -216,24 +373,35 @@
         }
 
         .stat-card {
-            background: var(--tg-theme-bg-color, #ffffff);
-            padding: 16px;
-            border-radius: 12px;
+            background: var(--ios-bg-tertiary);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 16px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--tg-theme-hint-color, #e9ecef);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--ios-separator);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            background: var(--ios-bg-elevated);
         }
 
         .stat-number {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
-            color: var(--tg-theme-button-color, #007bff);
+            color: var(--ios-blue);
+            letter-spacing: -0.3px;
         }
 
         .stat-label {
-            font-size: 11px;
-            color: var(--tg-theme-hint-color, #666666);
+            font-size: 12px;
+            color: var(--ios-text-secondary);
             margin-top: 4px;
+            letter-spacing: -0.1px;
         }
 
         .menu-grid {
@@ -243,26 +411,31 @@
         }
 
         .menu-item {
-            background: var(--tg-theme-bg-color, #ffffff);
-            border: 1px solid var(--tg-theme-hint-color, #e9ecef);
-            border-radius: 12px;
-            padding: 16px;
+            background: var(--ios-bg-tertiary);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--ios-separator);
+            border-radius: 16px;
+            padding: 20px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
-            color: var(--tg-theme-text-color, #000000);
+            color: var(--ios-text-primary);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .menu-item:hover {
-            border-color: var(--tg-theme-button-color, #007bff);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 122, 255, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            background: var(--ios-bg-elevated);
         }
 
         .menu-icon {
-            font-size: 24px;
-            margin-bottom: 8px;
+            font-size: 28px;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
         }
 
         .search-container {
@@ -279,13 +452,18 @@
             right: 6px;
             top: 50%;
             transform: translateY(-50%);
-            background: var(--tg-theme-button-color, #007bff);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            background: var(--ios-blue);
+            color: var(--ios-text-primary);
             border: none;
             padding: 8px 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .search-btn:hover {
+            background: var(--ios-blue-dark);
         }
 
         .filter-row {
@@ -296,26 +474,30 @@
         }
 
         .upload-area {
-            border: 2px dashed var(--tg-theme-button-color, #007bff);
-            border-radius: 8px;
+            border: 2px dashed var(--ios-blue);
+            border-radius: 12px;
             padding: 20px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             margin-bottom: 16px;
+            background: var(--ios-bg-tertiary);
+            color: var(--ios-text-secondary);
         }
 
         .upload-area:hover {
-            background: rgba(0, 123, 255, 0.05);
+            background: rgba(0, 122, 255, 0.05);
+            border-color: var(--ios-blue-dark);
         }
 
         .upload-area.dragover {
-            background: rgba(0, 123, 255, 0.1);
+            background: rgba(0, 122, 255, 0.1);
+            border-color: var(--ios-blue-dark);
         }
 
         .registration-form {
-            background: var(--tg-theme-bg-color, #ffffff);
-            border: 1px solid var(--tg-theme-hint-color, #e9ecef);
+            background: var(--ios-bg-tertiary);
+            border: 1px solid var(--ios-separator);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
@@ -323,25 +505,28 @@
 
         .maps-link {
             display: inline-block;
-            background: #4285f4;
-            color: white;
+            background: var(--ios-blue);
+            color: var(--ios-text-primary);
             padding: 8px 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             text-decoration: none;
             font-size: 14px;
             margin-top: 8px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .maps-link:hover {
-            background: #3367d6;
+            background: var(--ios-blue-dark);
+            transform: translateY(-1px);
         }
 
         .notification-badge {
             position: absolute;
             top: -4px;
             right: -4px;
-            background: #dc3545;
-            color: white;
+            background: var(--ios-red);
+            color: var(--ios-text-primary);
             border-radius: 50%;
             width: 20px;
             height: 20px;
@@ -350,6 +535,7 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            border: 2px solid var(--ios-bg-secondary);
         }
 
         .loading {
@@ -359,8 +545,8 @@
         }
 
         .spinner {
-            border: 3px solid rgba(0, 123, 255, 0.3);
-            border-top: 3px solid var(--tg-theme-button-color, #007bff);
+            border: 3px solid rgba(0, 122, 255, 0.3);
+            border-top: 3px solid var(--ios-blue);
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -374,9 +560,9 @@
         }
 
         .reminder-settings {
-            background: var(--tg-theme-bg-color, #ffffff);
-            border: 1px solid var(--tg-theme-hint-color, #e9ecef);
-            border-radius: 8px;
+            background: var(--ios-bg-tertiary);
+            border: 1px solid var(--ios-separator);
+            border-radius: 12px;
             padding: 16px;
             margin-bottom: 16px;
         }
@@ -387,56 +573,221 @@
         }
 
         .priority-urgent {
-            background: #dc3545;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
+            background: var(--ios-red);
+            color: var(--ios-text-primary);
+            padding: 4px 8px;
+            border-radius: 6px;
             font-size: 12px;
+            font-weight: 500;
         }
 
         .priority-high {
-            background: #ffc107;
-            color: #212529;
-            padding: 2px 6px;
-            border-radius: 4px;
+            background: var(--ios-orange);
+            color: var(--ios-text-primary);
+            padding: 4px 8px;
+            border-radius: 6px;
             font-size: 12px;
+            font-weight: 500;
         }
 
         .priority-normal {
-            background: #28a745;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
+            background: var(--ios-green);
+            color: var(--ios-text-primary);
+            padding: 4px 8px;
+            border-radius: 6px;
             font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* iOS Safe Area Support */
+        @supports (padding: max(0px)) {
+            .container {
+                padding-top: max(24px, env(safe-area-inset-top));
+                padding-bottom: max(24px, env(safe-area-inset-bottom));
+                padding-left: max(24px, env(safe-area-inset-left));
+                padding-right: max(24px, env(safe-area-inset-right));
+            }
+        }
+
+        /* iOS Touch Enhancements */
+        .btn, .card, .menu-item, .stat-card {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .btn:active, .card:active, .menu-item:active, .stat-card:active {
+            transform: scale(0.98);
+        }
+
+        /* iOS Scrolling */
+        .container {
+            -webkit-overflow-scrolling: touch;
+            overflow-scrolling: touch;
+        }
+
+        /* iOS Focus States */
+        input:focus, textarea:focus, select:focus {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* iOS Dark Mode Media Query Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --ios-bg-primary: #000000;
+                --ios-bg-secondary: #1c1c1e;
+                --ios-bg-tertiary: #2c2c2e;
+                --ios-bg-elevated: #3a3a3c;
+            }
         }
 
         @media (max-width: 480px) {
             .container {
-                padding: 16px;
-                margin: 5px;
+                padding: 20px;
+                margin: 8px;
+                border-radius: 18px;
+                max-width: calc(100% - 16px);
             }
             
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 16px;
             }
             
             .menu-grid {
                 grid-template-columns: 1fr;
+                gap: 16px;
             }
             
             .filter-row {
                 grid-template-columns: 1fr;
+                gap: 12px;
             }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            .btn {
+                padding: 16px 18px;
+                font-size: 16px;
+            }
+            
+            .menu-item {
+                padding: 24px;
+            }
+            
+            .menu-icon {
+                font-size: 28px;
+                margin-bottom: 12px;
+            }
+        }
+
+        /* Login Form Styles */
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--ios-text-primary);
+        }
+
+        .login-form input,
+        .login-form select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--ios-separator);
+            border-radius: 12px;
+            background: var(--ios-bg-secondary);
+            color: var(--ios-text-primary);
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .login-form input:focus,
+        .login-form select:focus {
+            outline: none;
+            border-color: var(--ios-blue);
+        }
+
+        .login-form .btn {
+            width: 100%;
+            margin-top: 16px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .login-help {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--ios-bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--ios-separator);
+        }
+
+        /* Notification Styles */
+        .notification {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Login Screen -->
+        <div class="screen active" id="loginScreen">
+            <h1>🔐 AMP - Login</h1>
+            <p style="text-align: center; color: var(--tg-theme-hint-color, #666); margin-bottom: 32px; font-size: 15px; font-weight: 500;">
+                Digitale Auftragsverwaltung für Deutschland, Österreich & Schweiz
+            </p>
+            
+            <div class="login-form">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername">Benutzername:</label>
+                        <input type="text" id="loginUsername" placeholder="Telefonnummer oder Benutzername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Passwort:</label>
+                        <input type="password" id="loginPassword" placeholder="Passwort eingeben" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginRole">Rolle:</label>
+                        <select id="loginRole" required>
+                            <option value="">-- Bitte wählen --</option>
+                            <option value="admin">⚙️ Admin</option>
+                            <option value="monteur">🔧 Monteur</option>
+                            <option value="agent">👤 Agent</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">🔐 Anmelden</button>
+                </form>
+                <div class="login-help">
+                    <p style="text-align: center; color: var(--tg-theme-hint-color, #666); margin-top: 24px; font-size: 14px;">
+                        Monteure: Telefonnummer als Benutzername verwenden<br>
+                        Bei Problemen wenden Sie sich an den Administrator
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <!-- Welcome/Role Selection Screen -->
-        <div class="screen active" id="welcomeScreen">
+        <div class="screen" id="welcomeScreen">
             <h1>🚀 AMP - AuftragsManager Pro</h1>
-            <p style="text-align: center; color: var(--tg-theme-hint-color, #666); margin-bottom: 24px; font-size: 14px;">
-                Digitale Auftragsverwaltung für Österreich & Schweiz
+            <p style="text-align: center; color: var(--tg-theme-hint-color, #666); margin-bottom: 32px; font-size: 15px; font-weight: 500;">
+                Digitale Auftragsverwaltung für Deutschland, Österreich & Schweiz
             </p>
             
             <div class="menu-grid">
@@ -456,6 +807,12 @@
                     <div class="menu-icon">📝</div>
                     <div>Registrierung</div>
                 </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 32px;">
+                <button class="btn" onclick="logout()" style="background: var(--ios-red); color: white;">
+                    🚪 Abmelden
+                </button>
             </div>
         </div>
 
@@ -482,6 +839,7 @@
                         <label for="regCountry">Land:</label>
                         <select id="regCountry" required>
                             <option value="">-- Bitte wählen --</option>
+                            <option value="DE">🇩🇪 Deutschland</option>
                             <option value="AT">🇦🇹 Österreich</option>
                             <option value="CH">🇨🇭 Schweiz</option>
                         </select>
@@ -547,6 +905,7 @@
                     <label for="country">Land:</label>
                     <select id="country" required>
                         <option value="">-- Bitte wählen --</option>
+                        <option value="DE">🇩🇪 Deutschland</option>
                         <option value="AT">🇦🇹 Österreich</option>
                         <option value="CH">🇨🇭 Schweiz</option>
                     </select>
@@ -622,6 +981,7 @@
             <div class="filter-row">
                 <select id="filterCountry">
                     <option value="">Alle Länder</option>
+                    <option value="DE">🇩🇪 Deutschland</option>
                     <option value="AT">🇦🇹 Österreich</option>
                     <option value="CH">🇨🇭 Schweiz</option>
                 </select>
@@ -678,6 +1038,9 @@
                             <option value="bar">💵 Bar</option>
                             <option value="überweisung">🏦 Überweisung</option>
                             <option value="ec">💳 EC-Karte</option>
+                            <option value="kreditkarte">💳 Kreditkarte</option>
+                            <option value="paypal">💙 PayPal</option>
+                            <option value="klarna">💜 Klarna</option>
                             <option value="twint">📱 Twint</option>
                         </select>
                     </div>
@@ -739,6 +1102,7 @@
                 </select>
                 <select id="reportCountry">
                     <option value="">Alle Länder</option>
+                    <option value="DE">🇩🇪 Deutschland</option>
                     <option value="AT">🇦🇹 Österreich</option>
                     <option value="CH">🇨🇭 Schweiz</option>
                 </select>
@@ -872,12 +1236,354 @@
         let monteurs = [];
         let userData = {};
         let pushNotifications = [];
+        let isAuthenticated = false;
+
+        // User Database - Predefined users
+        const userDatabase = {
+            // Admin users
+            admin: {
+                username: 'admin',
+                password: 'admin123',
+                role: 'admin',
+                name: 'Administrator',
+                permissions: ['all']
+            },
+            
+            // Monteur users (phone number as username)
+            '+491234567890': {
+                username: '+491234567890',
+                password: 'monteur123',
+                role: 'monteur',
+                name: 'Max Mustermann',
+                phone: '+491234567890',
+                serviceArea: 'Berlin',
+                country: 'DE',
+                permissions: ['orders', 'revenue', 'status']
+            },
+            '+4369912345678': {
+                username: '+4369912345678',
+                password: 'monteur456',
+                role: 'monteur',
+                name: 'Anna Schmidt',
+                phone: '+4369912345678',
+                serviceArea: 'Wien',
+                country: 'AT',
+                permissions: ['orders', 'revenue', 'status']
+            },
+            '+41791234567': {
+                username: '+41791234567',
+                password: 'monteur789',
+                role: 'monteur',
+                name: 'Peter Müller',
+                phone: '+41791234567',
+                serviceArea: 'Zürich',
+                country: 'CH',
+                permissions: ['orders', 'revenue', 'status']
+            },
+            
+            // Agent users
+            'agent1': {
+                username: 'agent1',
+                password: 'agent123',
+                role: 'agent',
+                name: 'Agent Beispiel',
+                permissions: ['orders', 'monteur_assignment']
+            }
+        };
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
             initializeTelegramWebApp();
             initializeApp();
+            checkAuthenticationStatus();
         });
+
+        // Authentication Functions
+        function checkAuthenticationStatus() {
+            // Check if user is already logged in (from localStorage)
+            const savedUser = localStorage.getItem('amp_current_user');
+            const savedAuthStatus = localStorage.getItem('amp_auth_status');
+            
+            if (savedUser && savedAuthStatus === 'true') {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    isAuthenticated = true;
+                    showScreen('welcomeScreen');
+                    updateUserInterface();
+                    console.log('User already logged in:', currentUser.name);
+                } catch (error) {
+                    console.error('Error parsing saved user data:', error);
+                    logout();
+                }
+            } else {
+                showScreen('loginScreen');
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const selectedRole = document.getElementById('loginRole').value;
+            
+            if (!username || !password || !selectedRole) {
+                showNotification('Bitte alle Felder ausfüllen!', 'error');
+                return;
+            }
+            
+            // Authenticate user
+            const user = authenticateUser(username, password, selectedRole);
+            
+            if (user) {
+                currentUser = user;
+                isAuthenticated = true;
+                
+                // Save to localStorage for persistence
+                localStorage.setItem('amp_current_user', JSON.stringify(currentUser));
+                localStorage.setItem('amp_auth_status', 'true');
+                
+                // Show success message
+                showNotification(`Willkommen, ${currentUser.name}!`, 'success');
+                
+                // Navigate to main screen
+                showScreen('welcomeScreen');
+                updateUserInterface();
+                
+                // Clear form
+                document.getElementById('loginForm').reset();
+                
+                console.log('User logged in successfully:', currentUser);
+            } else {
+                showNotification('Ungültige Anmeldedaten oder falsche Rolle!', 'error');
+            }
+        }
+
+        function authenticateUser(username, password, role) {
+            // Check if user exists in database
+            const user = userDatabase[username];
+            
+            if (!user) {
+                return null;
+            }
+            
+            // Check password
+            if (user.password !== password) {
+                return null;
+            }
+            
+            // Check role
+            if (user.role !== role) {
+                return null;
+            }
+            
+            // Return user object with login timestamp
+            return {
+                ...user,
+                loginTimestamp: new Date().toISOString(),
+                sessionId: generateSessionId()
+            };
+        }
+
+        function logout() {
+            // Clear authentication state
+            currentUser = null;
+            isAuthenticated = false;
+            
+            // Clear localStorage
+            localStorage.removeItem('amp_current_user');
+            localStorage.removeItem('amp_auth_status');
+            
+            // Show logout message
+            showNotification('Erfolgreich abgemeldet!', 'info');
+            
+            // Navigate to login screen
+            showScreen('loginScreen');
+            
+            console.log('User logged out successfully');
+        }
+
+        function generateSessionId() {
+            return 'session_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        }
+
+        function showNotification(message, type = 'info') {
+            // Use Telegram WebApp notification if available
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.showAlert(message);
+                return;
+            }
+            
+            // Fallback to browser notification
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            
+            // Add styles
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 20px;
+                border-radius: 12px;
+                color: white;
+                font-weight: 500;
+                font-size: 14px;
+                z-index: 10000;
+                max-width: 300px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(10px);
+                transition: all 0.3s ease;
+                transform: translateX(100%);
+            `;
+            
+            // Set background color based on type
+            switch (type) {
+                case 'success':
+                    notification.style.backgroundColor = 'var(--ios-green)';
+                    break;
+                case 'error':
+                    notification.style.backgroundColor = 'var(--ios-red)';
+                    break;
+                case 'warning':
+                    notification.style.backgroundColor = 'var(--ios-orange)';
+                    break;
+                default:
+                    notification.style.backgroundColor = 'var(--ios-blue)';
+            }
+            
+            // Add to body
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remove after 4 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 4000);
+        }
+
+        function updateUserInterface() {
+            if (currentUser) {
+                // Update user role display
+                const userRoleElement = document.getElementById('userRole');
+                if (userRoleElement) {
+                    userRoleElement.textContent = currentUser.name;
+                }
+                
+                // Update menu based on user permissions
+                updateMenuPermissions();
+                
+                // Update any other UI elements based on user role
+                updateRoleSpecificUI();
+            }
+        }
+
+        function updateMenuPermissions() {
+            const menuGrid = document.getElementById('menuGrid');
+            if (!menuGrid || !currentUser) return;
+            
+            // Clear existing menu items
+            menuGrid.innerHTML = '';
+            
+            // Add menu items based on user permissions
+            const menuItems = getMenuItemsForUser(currentUser);
+            
+            menuItems.forEach(item => {
+                const menuDiv = document.createElement('div');
+                menuDiv.className = 'menu-item';
+                menuDiv.onclick = item.action;
+                menuDiv.innerHTML = `
+                    <div class="menu-icon">${item.icon}</div>
+                    <div>${item.label}</div>
+                `;
+                menuGrid.appendChild(menuDiv);
+            });
+        }
+
+        function getMenuItemsForUser(user) {
+            const baseItems = [];
+            
+            // Add items based on role and permissions
+            if (user.permissions.includes('all') || user.permissions.includes('orders')) {
+                baseItems.push({
+                    icon: '📋',
+                    label: 'Neue Bestellung',
+                    action: () => showScreen('newOrderScreen')
+                });
+                
+                baseItems.push({
+                    icon: '📊',
+                    label: 'Aufträge anzeigen',
+                    action: () => showScreen('orderListScreen')
+                });
+            }
+            
+            if (user.permissions.includes('all') || user.permissions.includes('revenue')) {
+                baseItems.push({
+                    icon: '💰',
+                    label: 'Umsatz melden',
+                    action: () => showScreen('revenueScreen')
+                });
+            }
+            
+            if (user.permissions.includes('all') || user.permissions.includes('monteur_assignment')) {
+                baseItems.push({
+                    icon: '👥',
+                    label: 'Monteur zuweisen',
+                    action: () => showScreen('assignMonteurScreen')
+                });
+            }
+            
+            if (user.permissions.includes('all') || user.permissions.includes('status')) {
+                baseItems.push({
+                    icon: '🔄',
+                    label: 'Status ändern',
+                    action: () => showScreen('statusScreen')
+                });
+            }
+            
+            if (user.permissions.includes('all')) {
+                baseItems.push({
+                    icon: '📈',
+                    label: 'Berichte',
+                    action: () => showScreen('reportsScreen')
+                });
+                
+                baseItems.push({
+                    icon: '🔔',
+                    label: 'Push-Nachrichten',
+                    action: () => showScreen('pushScreen')
+                });
+            }
+            
+            return baseItems;
+        }
+
+        function updateRoleSpecificUI() {
+            if (!currentUser) return;
+            
+            // Update forms and fields based on user role
+            if (currentUser.role === 'monteur') {
+                // Pre-fill monteur fields
+                const monteurFields = document.querySelectorAll('[data-auto-fill="monteur"]');
+                monteurFields.forEach(field => {
+                    if (field.type === 'tel' || field.name === 'phone') {
+                        field.value = currentUser.phone || '';
+                    }
+                    if (field.name === 'monteur') {
+                        field.value = currentUser.name || '';
+                    }
+                });
+            }
+        }
 
         function initializeTelegramWebApp() {
             if (tg) {
@@ -896,6 +1602,12 @@
                     if (currentScreen.id === 'dashboardScreen') {
                         showScreen('welcomeScreen');
                     } else if (currentScreen.id === 'welcomeScreen') {
+                        if (isAuthenticated) {
+                            logout();
+                        } else {
+                            tg.close();
+                        }
+                    } else if (currentScreen.id === 'loginScreen') {
                         tg.close();
                     } else {
                         showScreen('dashboardScreen');
@@ -920,10 +1632,16 @@
             
             // Add event listeners
             setupEventListeners();
+            
+            // Initialize authentication-related UI
+            if (isAuthenticated && currentUser) {
+                updateUserInterface();
+            }
         }
 
         function setupEventListeners() {
             // Form submissions
+            document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
             document.getElementById('registrationForm')?.addEventListener('submit', handleRegistration);
             document.getElementById('newOrderForm')?.addEventListener('submit', handleNewOrder);
             document.getElementById('revenueForm')?.addEventListener('submit', handleRevenueReport);
@@ -1002,6 +1720,41 @@
                     amount: 180.50,
                     paymentMethod: "twint",
                     mapsLink: generateMapsLink("Bahnhofstrasse 12, 8001 Zürich")
+                },
+                {
+                    id: 4708,
+                    customer: "Franziska Müller",
+                    address: "Hauptstraße 89, 10115 Berlin",
+                    industry: "rohrreinigung",
+                    country: "DE",
+                    status: "neu",
+                    date: "2025-01-16",
+                    time: "09:00",
+                    monteur: null,
+                    priority: "hoch",
+                    phone: "+49 30 12345678",
+                    description: "Verstopfte Toilette im Erdgeschoss",
+                    createdAt: new Date(Date.now() - 7200000).toISOString(),
+                    mapsLink: generateMapsLink("Hauptstraße 89, 10115 Berlin")
+                },
+                {
+                    id: 4707,
+                    customer: "Klaus Weber",
+                    address: "Marienplatz 5, 80331 München",
+                    industry: "elektrik",
+                    country: "DE",
+                    status: "abgeschlossen",
+                    date: "2025-01-13",
+                    time: "14:30",
+                    monteur: "michael_schmidt",
+                    priority: "normal",
+                    phone: "+49 89 9876543",
+                    description: "Sicherungskasten Wartung",
+                    createdAt: new Date(Date.now() - 259200000).toISOString(),
+                    completedAt: new Date(Date.now() - 172800000).toISOString(),
+                    amount: 299.99,
+                    paymentMethod: "paypal",
+                    mapsLink: generateMapsLink("Marienplatz 5, 80331 München")
                 }
             ];
 
@@ -1042,6 +1795,30 @@
                     completedOrders: 89,
                     status: "aktiv",
                     registeredAt: new Date(Date.now() - 86400000 * 15).toISOString()
+                },
+                {
+                    id: "michael_schmidt",
+                    name: "Michael Schmidt",
+                    phone: "+49 176 87654321",
+                    country: "DE",
+                    serviceArea: "Berlin, Brandenburg",
+                    branches: ["elektrik", "sanitär"],
+                    rating: 4.9,
+                    completedOrders: 287,
+                    status: "aktiv",
+                    registeredAt: new Date(Date.now() - 86400000 * 45).toISOString()
+                },
+                {
+                    id: "stefanie_bauer",
+                    name: "Stefanie Bauer",
+                    phone: "+49 152 98765432",
+                    country: "DE",
+                    serviceArea: "München, Bayern",
+                    branches: ["rohrreinigung", "heizung"],
+                    rating: 4.8,
+                    completedOrders: 156,
+                    status: "aktiv",
+                    registeredAt: new Date(Date.now() - 86400000 * 22).toISOString()
                 }
             ];
         }
@@ -1554,6 +2331,9 @@
                 'bar': 0,
                 'überweisung': 0,
                 'ec': 0,
+                'kreditkarte': 0,
+                'paypal': 0,
+                'klarna': 0,
                 'twint': 0
             };
             
@@ -1919,6 +2699,9 @@ ${order.paymentMethod ? `💳 Zahlungsart: ${getPaymentMethodName(order.paymentM
                 bar: '💵 Bar',
                 überweisung: '🏦 Überweisung',
                 ec: '💳 EC-Karte',
+                kreditkarte: '💳 Kreditkarte',
+                paypal: '💙 PayPal',
+                klarna: '💜 Klarna',
                 twint: '📱 Twint'
             };
             return names[method] || method;
@@ -1968,6 +2751,6 @@ ${order.paymentMethod ? `💳 Zahlungsart: ${getPaymentMethodName(order.paymentM
         // Check reminder every hour
         setInterval(checkDailyReminder, 3600000);
     </script>
-    <script src="js/amp-app.js"></script>
+ <script src="js/amp-app.js"></script>
 </body>
 </html>
