@@ -23,7 +23,7 @@ async function sendToWebhook(endpoint, data, successMsg, errorMsg) {
 // Alte Funktion als Fallback
 async function legacySendToWebhook(endpoint, data, successMsg, errorMsg) {
   try {
-    const baseUrl = window.AMP_CONFIG?.n8n?.baseUrl || 'https://DEIN-N8N-SERVER';
+    const baseUrl = window.AMP_CONFIG?.n8n?.baseUrl || 'https://amp-telegram.app.n8n.cloud';
     const res = await fetch(`${baseUrl}/webhook/${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
