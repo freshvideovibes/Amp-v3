@@ -54,7 +54,7 @@ document.getElementById('auftragButton')?.addEventListener('click', () => {
     preferred_time: document.getElementById('preferred_time').value,
     comments: document.getElementById('comments').value
   };
-  sendToWebhook('amp-miniapp', data, '✅ Auftrag gesendet!', '❌ Fehler beim Auftrag: ');
+  sendToWebhook('orders', data, '✅ Auftrag gesendet!', '❌ Fehler beim Auftrag: ');
 });
 
 // Umsatz melden
@@ -71,7 +71,7 @@ document.getElementById('umsatzButton')?.addEventListener('click', () => {
     kunde: document.getElementById('kunde').value,
     beschreibung: document.getElementById('beschreibung').value
   };
-  sendToWebhook('amp-umsatz', data, '✅ Umsatz gemeldet!', '❌ Fehler bei Umsatzmeldung: ');
+  sendToWebhook('revenue', data, '✅ Umsatz gemeldet!', '❌ Fehler bei Umsatzmeldung: ');
 });
 
 // Monteur zuweisen
@@ -81,7 +81,7 @@ document.getElementById('monteurZuweisenButton')?.addEventListener('click', () =
     monteur: document.getElementById('zuweisung_monteur').value,
     land: document.getElementById('zuweisung_land').value
   };
-  sendToWebhook('amp-monteur', data, '✅ Monteur zugewiesen!', '❌ Fehler bei Zuweisung: ');
+  sendToWebhook('monteur', data, '✅ Monteur zugewiesen!', '❌ Fehler bei Zuweisung: ');
 });
 
 // Status ändern
@@ -91,13 +91,54 @@ document.getElementById('statusAendernButton')?.addEventListener('click', () => 
     neuer_status: document.getElementById('neuer_status').value,
     land: document.getElementById('status_land').value
   };
-  sendToWebhook('amp-status', data, '✅ Status geändert!', '❌ Fehler bei Statusänderung: ');
+  sendToWebhook('status', data, '✅ Status geändert!', '❌ Fehler bei Statusänderung: ');
 });
 
 // Report abrufen
 document.getElementById('reportButton')?.addEventListener('click', () => {
-  fetch('https://DEIN-N8N-SERVER/webhook/report')
+  const baseUrl = window.AMP_CONFIG?.n8n?.baseUrl || 'https://amp-telegram.app.n8n.cloud';
+  const reportUrl = `${baseUrl}/webhook/amp-report`;
+  
+  fetch(reportUrl)
     .then(r => r.ok
       ? Telegram.WebApp.showAlert('📊 Report wird gesendet!')
       : Telegram.WebApp.showAlert('❌ Fehler beim Reportabruf.'));
 });
+
+// Initialize Enhanced Features
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize AMP Enhanced if available
+    if (window.AMP_CONFIG && window.AMPEnhanced) {
+        window.ampEnhanced = new AMPEnhanced();
+        console.log('✅ AMP Enhanced initialized successfully');
+    } else {
+        console.warn('⚠️ AMP Enhanced not available, using legacy functions');
+        
+        // Check if config is loaded
+        if (!window.AMP_CONFIG) {
+            console.error('❌ AMP_CONFIG not found. Make sure config.js is loaded.');
+        }
+        
+        // Check if enhanced script is loaded
+        if (!window.AMPEnhanced) {
+            console.error('❌ AMPEnhanced not found. Make sure amp-enhanced.js is loaded.');
+        }
+    }
+});
+
+// Fallback for Telegram Web App environment
+if (window.Telegram?.WebApp) {
+    // Initialize when Telegram Web App is ready
+    Telegram.WebApp.ready();
+    
+    // Additional initialization after DOM is loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (window.ampEnhanced) {
+                    console.log('✅ AMP Enhanced ready in Telegram Web App');
+                }
+            }, 100);
+        });
+    }
+}
