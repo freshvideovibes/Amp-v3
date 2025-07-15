@@ -2,7 +2,7 @@
 const AMP_CONFIG = {
     // n8n Server Configuration
     n8n: {
-        baseUrl: process.env.N8N_SERVER_URL || 'https://amp-telegram.app.n8n.cloud',
+        baseUrl: 'https://amp-telegram.app.n8n.cloud', // TODO: Update this to your actual n8n server URL
         webhooks: {
             orders: '/webhook/amp-orders',
             revenue: '/webhook/amp-revenue',
@@ -21,15 +21,15 @@ const AMP_CONFIG = {
     // Google Services Configuration
     google: {
         maps: {
-            apiKey: process.env.GOOGLE_MAPS_API_KEY || '',
+            apiKey: '', // TODO: Add your Google Maps API key here
             geocodingUrl: 'https://maps.googleapis.com/maps/api/geocode/json',
             directionsUrl: 'https://maps.googleapis.com/maps/api/directions/json',
             distanceMatrixUrl: 'https://maps.googleapis.com/maps/api/distancematrix/json',
             staticMapUrl: 'https://maps.googleapis.com/maps/api/staticmap'
         },
         sheets: {
-            spreadsheetId: process.env.GOOGLE_SHEETS_ID || '',
-            apiKey: process.env.GOOGLE_SHEETS_API_KEY || '',
+            spreadsheetId: '', // TODO: Add your Google Sheets ID here
+            apiKey: '', // TODO: Add your Google Sheets API key here
             ranges: {
                 orders: 'Aufträge!A:Z',
                 monteurs: 'Monteure!A:Z',
@@ -41,13 +41,13 @@ const AMP_CONFIG = {
 
     // Telegram Configuration
     telegram: {
-        botToken: process.env.TELEGRAM_BOT_TOKEN || '',
-        webhookUrl: process.env.TELEGRAM_WEBHOOK_URL || '',
-        adminChatId: process.env.TELEGRAM_ADMIN_CHAT_ID || '',
+        botToken: '', // TODO: Add your Telegram Bot Token here
+        webhookUrl: '', // TODO: Add your Telegram Webhook URL here
+        adminChatId: '', // TODO: Add your Telegram Admin Chat ID here
         notificationChannels: {
-            orders: process.env.TELEGRAM_ORDERS_CHANNEL || '',
-            revenue: process.env.TELEGRAM_REVENUE_CHANNEL || '',
-            alerts: process.env.TELEGRAM_ALERTS_CHANNEL || ''
+            orders: '', // TODO: Add your Telegram Orders Channel here
+            revenue: '', // TODO: Add your Telegram Revenue Channel here
+            alerts: '' // TODO: Add your Telegram Alerts Channel here
         }
     },
 
