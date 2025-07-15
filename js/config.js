@@ -1,5 +1,22 @@
 // AMP Configuration - Zentrale Konfiguration für alle Services
-const endpoint = 'https://amp-telegram.app.n8n.cloud/webhook-test/amp-orders'
+const AMP_CONFIG = {
+    // n8n Server Configuration
+    n8n: {
+        baseUrl: process.env.N8N_SERVER_URL || 'https://amp-telegram.app.n8n.cloud',
+        webhooks: {
+            orders: '/webhook/amp-orders',
+            revenue: '/webhook/amp-revenue',
+            monteur: '/webhook/amp-monteur',
+            status: '/webhook/amp-status',
+            sheets: '/webhook/amp-sheets-sync',
+            maps: '/webhook/amp-maps-geocode',
+            report: '/webhook/amp-report',
+            notifications: '/webhook/amp-notifications'
+        },
+        retryAttempts: 3,
+        retryDelay: 1000,
+        timeout: 10000
+    },
 
     // Google Services Configuration
     google: {
