@@ -11,11 +11,53 @@ const AMP_CONFIG = {
             sheets: '/webhook/amp-sheets-sync',
             maps: '/webhook/amp-maps-geocode',
             report: '/webhook/amp-report',
-            notifications: '/webhook/amp-notifications'
+            notifications: '/webhook/amp-notifications',
+            search: '/webhook/amp-search',
+            daily_report: '/webhook/amp-daily-report'
         },
         retryAttempts: 3,
         retryDelay: 1000,
         timeout: 10000
+    },
+
+    // User Roles Configuration
+    roles: {
+        definitions: {
+            admin: {
+                name: 'Administrator',
+                permissions: ['all'],
+                color: '#ff453a'
+            },
+            agent: {
+                name: 'Agent',
+                permissions: ['create_order', 'search_orders', 'schedule_appointment', 'manage_wait_time', 'handle_complaints'],
+                color: '#007aff'
+            },
+            monteur: {
+                name: 'Monteur',
+                permissions: ['report_revenue', 'add_comments', 'view_own_orders'],
+                color: '#30d158'
+            },
+            vergabe: {
+                name: 'Vergabe',
+                permissions: ['all'],
+                color: '#ff9f0a'
+            },
+            guest: {
+                name: 'Gast',
+                permissions: [],
+                color: '#8e8e93'
+            }
+        },
+        // Telegram ID -> Role mapping
+        users: {
+            // TODO: Add your Telegram IDs here
+            // Example:
+            // "123456789": "admin",
+            // "987654321": "agent",
+            // "555666777": "monteur",
+            // "111222333": "vergabe"
+        }
     },
 
     // Google Services Configuration
@@ -62,7 +104,8 @@ const AMP_CONFIG = {
         enableGeolocation: true,
         enableFileUploads: true,
         maxFileSize: 10 * 1024 * 1024, // 10MB
-        allowedFileTypes: ['image/*', '.pdf', '.doc', '.docx', '.txt']
+        allowedFileTypes: ['image/*', '.pdf', '.doc', '.docx', '.txt'],
+        dailyReportTime: '06:00' // 6:00 AM daily report
     },
 
     // Local Storage Keys
@@ -72,7 +115,8 @@ const AMP_CONFIG = {
         monteurs: 'amp_monteurs',
         settings: 'amp_settings',
         offlineQueue: 'amp_offline_queue',
-        syncTimestamp: 'amp_sync_timestamp'
+        syncTimestamp: 'amp_sync_timestamp',
+        userRole: 'amp_user_role'
     }
 };
 

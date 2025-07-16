@@ -12,6 +12,8 @@ class AMPEnhanced {
             cacheHits: 0,
             startTime: Date.now()
         };
+        this.userRole = null;
+        this.telegramId = null;
         this.initializeApp();
     }
 
@@ -25,6 +27,9 @@ class AMPEnhanced {
             this.setupTelegramHandlers();
         }
 
+        // Initialize user role system
+        this.initializeUserRole();
+
         // Setup offline/online handlers
         this.setupOfflineHandlers();
         
@@ -36,6 +41,9 @@ class AMPEnhanced {
         
         // Setup cache cleanup
         this.setupCacheCleanup();
+        
+        // Setup daily report schedule
+        this.setupDailyReportSchedule();
     }
 
     setupPerformanceMonitoring() {
@@ -138,6 +146,13 @@ class AMPEnhanced {
 
     // Enhanced n8n Integration with retry mechanism and caching
     async sendToN8N(endpoint, data, options = {}) {
+        // Check permissions before sending
+        if (!this.checkEndpointPermission(endpoint)) {
+            const message = `❌ Keine Berechtigung für diese Aktion!\n\nDeine Rolle: ${this.getRoleName()}`;
+            this.showNotification(message, 'error');
+            throw new Error('Insufficient permissions');
+        }
+
         const url = `${this.config.n8n.baseUrl}${this.config.n8n.webhooks[endpoint]}`;
         
         // Check cache for idempotent operations
@@ -550,7 +565,10 @@ class AMPEnhanced {
             telegram_id: tg?.initDataUnsafe?.user?.id || null,
             username: tg?.initDataUnsafe?.user?.username || null,
             language: tg?.initDataUnsafe?.user?.language_code || 'de',
-            platform: tg?.platform || 'unknown'
+            platform: tg?.platform || 'unknown',
+            role: this.userRole || 'guest',
+            roleColor: this.getRoleColor(),
+            permissions: this.getUserPermissions()
         };
     }
 
@@ -638,6 +656,149 @@ class AMPEnhanced {
 
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // User Role System
+    initializeUserRole() {
+        const tg = window.Telegram?.WebApp;
+        
+        if (tg?.initDataUnsafe?.user?.id) {
+            this.telegramId = tg.initDataUnsafe.user.id.toString();
+            this.userRole = this.config.roles.users[this.telegramId] || 'guest';
+            
+            // Store role in localStorage
+            localStorage.setItem(this.config.storage.userRole, this.userRole);
+            
+            console.log(`User role initialized: ${this.userRole} for Telegram ID: ${this.telegramId}`);
+            
+            // Show unauthorized message for guest users
+            if (this.userRole === 'guest') {
+                this.showUnauthorizedMessage();
+            }
+        } else {
+            this.userRole = 'guest';
+            console.warn('No Telegram user ID found, defaulting to guest role');
+        }
+        
+        // Update UI based on role
+        this.updateUIForRole();
+    }
+
+    showUnauthorizedMessage() {
+        const message = `⚠️ Du bist nicht registriert!\n\nDeine Telegram-ID: ${this.telegramId}\n\nBitte wende dich an den Administrator, um Zugriff zu erhalten.`;
+        
+        if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.showAlert(message);
+        } else {
+            alert(message);
+        }
+    }
+
+    hasPermission(permission) {
+        if (this.userRole === 'admin' || this.userRole === 'vergabe') {
+            return true; // Admin and Vergabe have all permissions
+        }
+        
+        const roleConfig = this.config.roles.definitions[this.userRole];
+        if (!roleConfig) return false;
+        
+        return roleConfig.permissions.includes(permission) || roleConfig.permissions.includes('all');
+    }
+
+    getUserPermissions() {
+        const roleConfig = this.config.roles.definitions[this.userRole];
+        return roleConfig ? roleConfig.permissions : [];
+    }
+
+    getRoleColor() {
+        const roleConfig = this.config.roles.definitions[this.userRole];
+        return roleConfig ? roleConfig.color : '#8e8e93';
+    }
+
+    getRoleName() {
+        const roleConfig = this.config.roles.definitions[this.userRole];
+        return roleConfig ? roleConfig.name : 'Unbekannt';
+    }
+
+    updateUIForRole() {
+        // This will be called by amp-app.js to update the UI
+        if (window.updateUIForRole) {
+            window.updateUIForRole(this.userRole, this.getUserPermissions());
+        }
+    }
+
+
+
+    checkEndpointPermission(endpoint) {
+        switch (endpoint) {
+            case 'orders':
+                return this.hasPermission('create_order');
+            case 'revenue':
+                return this.hasPermission('report_revenue');
+            case 'monteur':
+                return this.hasPermission('assign_monteur') || this.userRole === 'admin' || this.userRole === 'vergabe';
+            case 'status':
+                return this.hasPermission('change_status') || this.userRole === 'admin' || this.userRole === 'vergabe';
+            case 'search':
+                return this.hasPermission('search_orders');
+            case 'report':
+                return this.userRole === 'admin' || this.userRole === 'vergabe';
+            default:
+                return this.userRole === 'admin' || this.userRole === 'vergabe';
+        }
+    }
+
+
+
+    setupDailyReportSchedule() {
+        // Schedule daily report at 6:00 AM
+        const now = new Date();
+        const scheduledTime = new Date(now);
+        scheduledTime.setHours(6, 0, 0, 0);
+        
+        // If it's already past 6 AM today, schedule for tomorrow
+        if (now > scheduledTime) {
+            scheduledTime.setDate(scheduledTime.getDate() + 1);
+        }
+        
+        const timeUntilReport = scheduledTime.getTime() - now.getTime();
+        
+        setTimeout(() => {
+            this.sendDailyReport();
+            // Schedule next day
+            setInterval(() => {
+                this.sendDailyReport();
+            }, 24 * 60 * 60 * 1000); // Every 24 hours
+        }, timeUntilReport);
+    }
+
+    async sendDailyReport() {
+        if (this.userRole === 'admin' || this.userRole === 'vergabe') {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const reportData = {
+                    date: today,
+                    type: 'daily_appointments',
+                    requested_by: this.telegramId
+                };
+                
+                // Skip permission check for daily report by calling the underlying method
+                const url = `${this.config.n8n.baseUrl}${this.config.n8n.webhooks.daily_report}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(reportData)
+                });
+                
+                if (response.ok) {
+                    console.log('Daily report sent successfully');
+                } else {
+                    console.error('Failed to send daily report:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Failed to send daily report:', error);
+            }
+        }
     }
 
     async syncWithServer() {

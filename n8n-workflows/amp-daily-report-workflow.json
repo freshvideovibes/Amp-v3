@@ -1,0 +1,267 @@
+{
+  "name": "AMP Daily Report Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "amp-daily-report",
+        "options": {}
+      },
+      "id": "a1a4a1a4-a1a4-a1a4-a1a4-a1a4a1a4a1a4",
+      "name": "Daily Report Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "amp-daily-report-webhook"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "value": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "b1b4b1b4-b1b4-b1b4-b1b4-b1b4b1b4b1b4",
+      "name": "Daily Schedule",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        240,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Daily Report Logic\nconst today = new Date();\nconst todayStr = today.toISOString().split('T')[0];\n\n// Check if this is a manual request or scheduled\nconst isManual = $input.first().json.requested_by !== undefined;\n\nconst reportData = {\n  date: todayStr,\n  type: 'daily_appointments',\n  isManual: isManual,\n  timestamp: new Date().toISOString()\n};\n\nconsole.log('Generating daily report for:', todayStr);\n\nreturn [{\n  json: reportData\n}];"
+      },
+      "id": "c1c4c1c4-c1c4-c1c4-c1c4-c1c4c1c4c1c4",
+      "name": "Process Report Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT o.*, m.name as monteur_name FROM orders o LEFT JOIN monteurs m ON o.assigned_monteur = m.telegram_id WHERE DATE(o.preferred_time) = '{{$json.date}}' OR (o.status = 'offen' AND DATE(o.created_at) = '{{$json.date}}') ORDER BY o.preferred_time ASC, o.created_at ASC"
+      },
+      "id": "d1d4d1d4-d1d4-d1d4-d1d4-d1d4d1d4d1d4",
+      "name": "Get Today's Orders",
+      "type": "n8n-nodes-base.mysql",
+      "typeVersion": 2,
+      "position": [
+        680,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format daily report\nconst orders = $input.all();\nconst reportDate = $input.first().json.date;\n\nif (orders.length === 0) {\n  return [{\n    json: {\n      message: `📅 **Tagesbericht ${reportDate}**\\n\\n❌ Keine Termine oder Aufträge für heute gefunden.`,\n      orderCount: 0,\n      success: true\n    }\n  }];\n}\n\n// Group orders by status and time\nconst scheduled = orders.filter(o => o.json.preferred_time && o.json.preferred_time.includes(reportDate));\nconst newOrders = orders.filter(o => !o.json.preferred_time || !o.json.preferred_time.includes(reportDate));\n\nlet report = `📅 **Tagesbericht ${reportDate}**\\n\\n`;\nreport += `📊 **Übersicht:**\\n`;\nreport += `• Terminierte Aufträge: ${scheduled.length}\\n`;\nreport += `• Neue Aufträge: ${newOrders.length}\\n`;\nreport += `• Gesamt: ${orders.length}\\n\\n`;\n\nif (scheduled.length > 0) {\n  report += `⏰ **Terminierte Aufträge:**\\n`;\n  scheduled.forEach(order => {\n    const o = order.json;\n    const time = new Date(o.preferred_time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });\n    report += `• ${time} - ${o.name} (${o.zip} ${o.city})\\n`;\n    report += `  📞 ${o.phone} | 🔧 ${o.monteur_name || 'Nicht zugewiesen'}\\n`;\n    report += `  📋 ${o.order_id || o.id} | 🏢 ${o.branch}\\n\\n`;\n  });\n}\n\nif (newOrders.length > 0) {\n  report += `🆕 **Neue Aufträge:**\\n`;\n  newOrders.forEach(order => {\n    const o = order.json;\n    report += `• ${o.name} (${o.zip} ${o.city})\\n`;\n    report += `  📞 ${o.phone} | 📊 ${o.status || 'offen'}\\n`;\n    report += `  📋 ${o.order_id || o.id} | 🏢 ${o.branch}\\n\\n`;\n  });\n}\n\nreport += `\\n_Bericht generiert: ${new Date().toLocaleString('de-DE')}_`;\n\nreturn [{\n  json: {\n    message: report,\n    orderCount: orders.length,\n    scheduledCount: scheduled.length,\n    newOrderCount: newOrders.length,\n    success: true\n  }\n}];"
+      },
+      "id": "e1e4e1e4-e1e4-e1e4-e1e4-e1e4e1e4e1e4",
+      "name": "Format Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT telegram_id FROM users WHERE role IN ('admin', 'vergabe') AND active = 1"
+      },
+      "id": "f1f4f1f4-f1f4-f1f4-f1f4-f1f4f1f4f1f4",
+      "name": "Get Admin Users",
+      "type": "n8n-nodes-base.mysql",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Send to all admin users\nconst adminUsers = $input.all();\nconst reportData = $input.first().json;\n\nif (adminUsers.length === 0) {\n  console.log('No admin users found for daily report');\n  return [{\n    json: {\n      message: 'No admin users found',\n      success: false\n    }\n  }];\n}\n\nconst sendTasks = adminUsers.map(user => ({\n  chatId: user.json.telegram_id,\n  text: reportData.message,\n  reportData: reportData\n}));\n\nreturn sendTasks.map(task => ({ json: task }));"
+      },
+      "id": "g1g4g1g4-g1g4-g1g4-g1g4-g1g4g1g4g1g4",
+      "name": "Prepare Admin Notifications",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{$json.chatId}}",
+        "text": "={{$json.text}}"
+      },
+      "id": "h1h4h1h4-h1h4-h1h4-h1h4-h1h4h1h4h1h4",
+      "name": "Send to Admin",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "reports",
+        "columns": "type,date,content,generated_at,recipients",
+        "values": "='daily_report',{{$json.date}},={{JSON.stringify($json.message)}},={{new Date().toISOString()}},={{$json.adminCount}}"
+      },
+      "id": "i1i4i1i4-i1i4-i1i4-i1i4-i1i4i1i4i1i4",
+      "name": "Log Report",
+      "type": "n8n-nodes-base.mysql",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}"
+      },
+      "id": "j1j4j1j4-j1j4-j1j4-j1j4-j1j4j1j4j1j4",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Daily Report Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Report Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "Process Report Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Report Request": {
+      "main": [
+        [
+          {
+            "node": "Get Today's Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Today's Orders": {
+      "main": [
+        [
+          {
+            "node": "Format Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Report": {
+      "main": [
+        [
+          {
+            "node": "Get Admin Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Admin Users": {
+      "main": [
+        [
+          {
+            "node": "Prepare Admin Notifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Admin Notifications": {
+      "main": [
+        [
+          {
+            "node": "Send to Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Admin": {
+      "main": [
+        [
+          {
+            "node": "Log Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Report": {
+      "main": [
+        [
+          {
+            "node": "Return Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "instanceId": "amp-daily-report-instance"
+  },
+  "id": "amp-daily-report-workflow",
+  "tags": [
+    "AMP",
+    "Daily Report",
+    "Scheduled",
+    "Admin"
+  ]
+}

@@ -1,0 +1,260 @@
+{
+  "name": "AMP Role-Based Order Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "amp-orders",
+        "options": {}
+      },
+      "id": "a2a5a2a5-a2a5-a2a5-a2a5-a2a5a2a5a2a5",
+      "name": "Orders Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "amp-orders-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Role-based order processing\nconst orderData = $input.first().json;\nconst { userContext } = orderData;\n\n// Check if user has permission to create orders\nconst allowedRoles = ['admin', 'vergabe', 'agent'];\nconst userRole = userContext.role;\n\nif (!allowedRoles.includes(userRole)) {\n  return [{\n    json: {\n      error: 'Insufficient permissions to create orders',\n      userRole: userRole,\n      success: false\n    }\n  }];\n}\n\n// Generate order ID\nconst orderId = 'AMP-' + new Date().getFullYear() + '-' + (Math.floor(Math.random() * 10000) + 1000);\n\n// Process order data\nconst processedOrder = {\n  order_id: orderId,\n  name: orderData.name,\n  address: orderData.address,\n  zip: orderData.zip,\n  city: orderData.city,\n  country: orderData.country,\n  phone: orderData.phone,\n  branch: orderData.branch,\n  description: orderData.description,\n  preferred_time: orderData.preferred_time || null,\n  comments: orderData.comments || '',\n  status: 'offen',\n  priority: orderData.priority || 'normal',\n  created_by: userContext.telegram_id,\n  created_by_role: userRole,\n  created_at: new Date().toISOString(),\n  assigned_monteur: null,\n  updated_at: new Date().toISOString()\n};\n\nconsole.log('Processing order:', orderId, 'by', userRole);\n\nreturn [{\n  json: processedOrder\n}];"
+      },
+      "id": "b2b5b2b5-b2b5-b2b5-b2b5-b2b5b2b5b2b5",
+      "name": "Process Order",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "orders",
+        "columns": "order_id,name,address,zip,city,country,phone,branch,description,preferred_time,comments,status,priority,created_by,created_by_role,created_at,assigned_monteur,updated_at",
+        "values": "={{$json.order_id}},={{$json.name}},={{$json.address}},={{$json.zip}},={{$json.city}},={{$json.country}},={{$json.phone}},={{$json.branch}},={{$json.description}},={{$json.preferred_time}},={{$json.comments}},={{$json.status}},={{$json.priority}},={{$json.created_by}},={{$json.created_by_role}},={{$json.created_at}},={{$json.assigned_monteur}},={{$json.updated_at}}"
+      },
+      "id": "c2c5c2c5-c2c5-c2c5-c2c5-c2c5c2c5c2c5",
+      "name": "Save Order",
+      "type": "n8n-nodes-base.mysql",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT telegram_id FROM users WHERE role IN ('admin', 'vergabe') AND active = 1"
+      },
+      "id": "d2d5d2d5-d2d5-d2d5-d2d5-d2d5d2d5d2d5",
+      "name": "Get Notification Recipients",
+      "type": "n8n-nodes-base.mysql",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Find suitable monteurs based on location and branch\nconst orderData = $input.first().json;\nconst { zip, country, branch } = orderData;\n\n// Query parameters for finding monteurs\nconst zipPrefix = zip.substring(0, 2); // First 2 digits of ZIP\n\nreturn [{\n  json: {\n    ...orderData,\n    searchZip: zipPrefix,\n    searchCountry: country,\n    searchBranch: branch\n  }\n}];"
+      },
+      "id": "e2e5e2e5-e2e5-e2e5-e2e5-e2e5e2e5e2e5",
+      "name": "Find Suitable Monteurs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT name, telegram_id, postal_code, service_area FROM monteurs WHERE country = '{{$json.searchCountry}}' AND branch = '{{$json.searchBranch}}' AND (postal_code LIKE '{{$json.searchZip}}%' OR service_area LIKE '%{{$json.city}}%') AND active = 1 ORDER BY postal_code LIMIT 5"
+      },
+      "id": "f2f5f2f5-f2f5-f2f5-f2f5-f2f5f2f5f2f5",
+      "name": "Query Monteurs",
+      "type": "n8n-nodes-base.mysql",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format notification message\nconst orderData = $input.first().json;\nconst monteurs = $input.all().slice(1); // Skip first item (order data)\n\nlet message = `🆕 **Neuer Auftrag erstellt**\\n\\n`;\nmessage += `📋 **Auftrag:** ${orderData.order_id}\\n`;\nmessage += `👤 **Kunde:** ${orderData.name}\\n`;\nmessage += `📍 **Adresse:** ${orderData.address}, ${orderData.zip} ${orderData.city}\\n`;\nmessage += `🌍 **Land:** ${orderData.country}\\n`;\nmessage += `📞 **Telefon:** ${orderData.phone}\\n`;\nmessage += `🏢 **Branche:** ${orderData.branch}\\n`;\nmessage += `📝 **Beschreibung:** ${orderData.description || 'Keine Beschreibung'}\\n`;\n\nif (orderData.preferred_time) {\n  message += `⏰ **Wunschtermin:** ${new Date(orderData.preferred_time).toLocaleString('de-DE')}\\n`;\n}\n\nif (orderData.comments) {\n  message += `💬 **Kommentare:** ${orderData.comments}\\n`;\n}\n\nmessage += `\\n📊 **Status:** ${orderData.status}\\n`;\nmessage += `🎯 **Priorität:** ${orderData.priority}\\n`;\nmessage += `👨‍💼 **Erstellt von:** ${orderData.created_by_role}\\n`;\n\nif (monteurs.length > 0) {\n  message += `\\n🔧 **Verfügbare Monteure:**\\n`;\n  monteurs.forEach(monteur => {\n    message += `• ${monteur.json.name} (${monteur.json.postal_code}) - ${monteur.json.service_area}\\n`;\n  });\n} else {\n  message += `\\n⚠️ **Keine passenden Monteure gefunden**\\n`;\n}\n\nmessage += `\\n_Auftrag erstellt: ${new Date().toLocaleString('de-DE')}_`;\n\nreturn [{\n  json: {\n    ...orderData,\n    notificationMessage: message,\n    availableMonteurs: monteurs.map(m => m.json),\n    success: true\n  }\n}];"
+      },
+      "id": "g2g5g2g5-g2g5-g2g5-g2g5-g2g5g2g5g2g5",
+      "name": "Format Notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Send notifications to admins\nconst orderData = $input.first().json;\nconst adminUsers = $input.all().filter(item => item.json.telegram_id);\n\nif (adminUsers.length === 0) {\n  return [{\n    json: {\n      message: 'No admin users found for notification',\n      success: false\n    }\n  }];\n}\n\nconst sendTasks = adminUsers.map(user => ({\n  chatId: user.json.telegram_id,\n  text: orderData.notificationMessage,\n  orderData: orderData\n}));\n\nreturn sendTasks.map(task => ({ json: task }));"
+      },
+      "id": "h2h5h2h5-h2h5-h2h5-h2h5-h2h5h2h5h2h5",
+      "name": "Prepare Notifications",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{$json.chatId}}",
+        "text": "={{$json.text}}"
+      },
+      "id": "i2i5i2i5-i2i5-i2i5-i2i5-i2i5i2i5i2i5",
+      "name": "Send Telegram Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json.orderData}}"
+      },
+      "id": "j2j5j2j5-j2j5-j2j5-j2j5-j2j5j2j5j2j5",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2220,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Orders Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Order": {
+      "main": [
+        [
+          {
+            "node": "Save Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Order": {
+      "main": [
+        [
+          {
+            "node": "Get Notification Recipients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Notification Recipients": {
+      "main": [
+        [
+          {
+            "node": "Find Suitable Monteurs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Suitable Monteurs": {
+      "main": [
+        [
+          {
+            "node": "Query Monteurs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Monteurs": {
+      "main": [
+        [
+          {
+            "node": "Format Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Notification": {
+      "main": [
+        [
+          {
+            "node": "Prepare Notifications",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Notifications": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Telegram Notification": {
+      "main": [
+        [
+          {
+            "node": "Return Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "instanceId": "amp-role-based-order-instance"
+  },
+  "id": "amp-role-based-order-workflow",
+  "tags": [
+    "AMP",
+    "Orders",
+    "Role-Based",
+    "Permissions"
+  ]
+}

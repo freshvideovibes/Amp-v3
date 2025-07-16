@@ -1,0 +1,159 @@
+{
+  "name": "AMP Search Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "amp-search",
+        "options": {}
+      },
+      "id": "b0b3b0b3-b0b3-b0b3-b0b3-b0b3b0b3b0b3",
+      "name": "Search Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "amp-search-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// AMP Search Logic\nconst searchData = $input.first().json;\nconst { criteria, value, role, userContext } = searchData;\n\n// Log search request\nconsole.log(`Search request: ${criteria} = ${value} by ${role}`);\n\n// Search criteria mapping\nconst searchQueries = {\n  plz: { field: 'zip', value: value },\n  name: { field: 'name', value: value },\n  date: { field: 'created_at', value: value },\n  phone: { field: 'phone', value: value },\n  order_number: { field: 'order_id', value: value }\n};\n\nconst searchQuery = searchQueries[criteria];\n\nif (!searchQuery) {\n  return [{\n    json: {\n      error: 'Invalid search criteria',\n      success: false\n    }\n  }];\n}\n\n// Role-based search restrictions\nlet additionalFilters = {};\n\nif (role === 'monteur') {\n  // Monteur can only see own orders\n  additionalFilters.assigned_monteur = userContext.telegram_id;\n}\n\nreturn [{\n  json: {\n    searchQuery,\n    additionalFilters,\n    searchCriteria: criteria,\n    searchValue: value,\n    userRole: role,\n    success: true\n  }\n}];"
+      },
+      "id": "c0c3c0c3-c0c3-c0c3-c0c3-c0c3c0c3c0c3",
+      "name": "Process Search",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM orders WHERE {{$json.searchQuery.field}} LIKE '%{{$json.searchValue}}%' {{$json.additionalFilters ? 'AND assigned_monteur = \"' + $json.additionalFilters.assigned_monteur + '\"' : ''}} ORDER BY created_at DESC LIMIT 20"
+      },
+      "id": "d0d3d0d3-d0d3-d0d3-d0d3-d0d3d0d3d0d3",
+      "name": "Search Database",
+      "type": "n8n-nodes-base.mysql",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format search results\nconst results = $input.all();\n\nif (results.length === 0) {\n  return [{\n    json: {\n      message: 'Keine Ergebnisse gefunden',\n      results: [],\n      count: 0,\n      success: true\n    }\n  }];\n}\n\n// Format results for display\nconst formattedResults = results.map(item => {\n  const data = item.json;\n  return {\n    id: data.id,\n    order_number: data.order_id || data.id,\n    customer_name: data.name,\n    address: `${data.address}, ${data.zip} ${data.city}`,\n    phone: data.phone,\n    status: data.status || 'offen',\n    created_at: data.created_at,\n    assigned_monteur: data.assigned_monteur,\n    priority: data.priority || 'normal',\n    branch: data.branch,\n    country: data.country\n  };\n});\n\nreturn [{\n  json: {\n    message: `${formattedResults.length} Ergebnisse gefunden`,\n    results: formattedResults,\n    count: formattedResults.length,\n    success: true\n  }\n}];"
+      },
+      "id": "e0e3e0e3-e0e3-e0e3-e0e3-e0e3e0e3e0e3",
+      "name": "Format Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "{{$json.userContext.telegram_id}}",
+        "text": "🔍 **Suchergebnisse** ({{$json.count}})\n\n{{$json.results.map(r => `📋 **${r.order_number}**\\n👤 ${r.customer_name}\\n📍 ${r.address}\\n📞 ${r.phone}\\n📊 Status: ${r.status}\\n🏢 ${r.branch}\\n📅 ${r.created_at}\\n\\n`).join('')}}\n\n_Suche durchgeführt von: {{$json.userContext.role}}_"
+      },
+      "id": "f0f3f0f3-f0f3-f0f3-f0f3-f0f3f0f3f0f3",
+      "name": "Send Results to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}"
+      },
+      "id": "g0g3g0g3-g0g3-g0g3-g0g3-g0g3g0g3g0g3",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Search Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Search": {
+      "main": [
+        [
+          {
+            "node": "Search Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Database": {
+      "main": [
+        [
+          {
+            "node": "Format Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Results": {
+      "main": [
+        [
+          {
+            "node": "Send Results to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Results to Telegram": {
+      "main": [
+        [
+          {
+            "node": "Return Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "instanceId": "amp-search-instance"
+  },
+  "id": "amp-search-workflow",
+  "tags": [
+    "AMP",
+    "Search",
+    "Role-Based"
+  ]
+}
