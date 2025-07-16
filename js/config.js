@@ -50,7 +50,7 @@ const AMP_CONFIG = {
             }
         },
         // Telegram ID -> Role mapping
-        users: {
+        users: { "7120042624": "admin",
             // TODO: Add your Telegram IDs here
             // Example:
             // "123456789": "admin",
