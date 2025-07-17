@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMP Agent - Auftragsmanager Pro</title>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="../shared/styles/base.css">
+    <link rel="stylesheet" href="../shared/styles/components.css">
+    
+    <!-- App Specific Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container nav-container">
+            <a href="#" class="nav-brand">🎯 AMP Agent</a>
+            <button class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-tab="create-order">
+                        📝 Auftrag erfassen
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-tab="search-orders">
+                        🔍 Auftrag suchen
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-tab="complaints">
+                        ⚠️ Beschwerden
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-tab="profile">
+                        👤 Profil
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Create Order Section -->
+            <section id="create-order" class="content-section active">
+                <div class="section-header">
+                    <h1>📝 Neuen Auftrag erfassen</h1>
+                    <p class="text-secondary">Erfassen Sie einen neuen Kundenauftrag</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Auftragsdaten</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="order-form">
+                            <div class="grid grid-cols-2">
+                                <div class="form-group">
+                                    <label class="form-label">Kunde Name *</label>
+                                    <input type="text" class="form-control" name="customerName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Telefon *</label>
+                                    <input type="tel" class="form-control" name="customerPhone" required>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2">
+                                <div class="form-group">
+                                    <label class="form-label">E-Mail</label>
+                                    <input type="email" class="form-control" name="customerEmail">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">PLZ *</label>
+                                    <input type="text" class="form-control" name="customerZip" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Adresse *</label>
+                                <input type="text" class="form-control" name="customerAddress" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Auftragsbeschreibung *</label>
+                                <textarea class="form-control form-textarea" name="orderDescription" required 
+                                          placeholder="Beschreiben Sie den gewünschten Service..."></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-2">
+                                <div class="form-group">
+                                    <label class="form-label">Terminwunsch</label>
+                                    <input type="date" class="form-control" name="preferredDate">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Uhrzeit</label>
+                                    <input type="time" class="form-control" name="preferredTime">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Priorität</label>
+                                <select class="form-control form-select" name="priority">
+                                    <option value="normal">Normal</option>
+                                    <option value="urgent">Dringend</option>
+                                    <option value="emergency">Notfall</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Zusätzliche Notizen</label>
+                                <textarea class="form-control form-textarea" name="notes" 
+                                          placeholder="Weitere Informationen oder Besonderheiten..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary btn-full">
+                                    📤 Auftrag übermitteln
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search Orders Section -->
+            <section id="search-orders" class="content-section">
+                <div class="section-header">
+                    <h1>🔍 Auftrag suchen</h1>
+                    <p class="text-secondary">Suchen Sie nach bestehenden Aufträgen</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Suchkriterien</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="search-form">
+                            <div class="grid grid-cols-2">
+                                <div class="form-group">
+                                    <label class="form-label">Auftrags-ID</label>
+                                    <input type="text" class="form-control" name="orderId" 
+                                           placeholder="z.B. AMP-2024-001">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Kundenname</label>
+                                    <input type="text" class="form-control" name="customerName" 
+                                           placeholder="Name des Kunden">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2">
+                                <div class="form-group">
+                                    <label class="form-label">Telefon</label>
+                                    <input type="tel" class="form-control" name="customerPhone">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">PLZ</label>
+                                    <input type="text" class="form-control" name="customerZip">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2">
+                                <div class="form-group">
+                                    <label class="form-label">Datum von</label>
+                                    <input type="date" class="form-control" name="dateFrom">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Datum bis</label>
+                                    <input type="date" class="form-control" name="dateTo">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">
+                                    🔍 Suchen
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="clear-search">
+                                    🗑️ Zurücksetzen
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div id="search-results" class="mt-4" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Suchergebnisse</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="results-container">
+                                <!-- Results will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Complaints Section -->
+            <section id="complaints" class="content-section">
+                <div class="section-header">
+                    <h1>⚠️ Beschwerden & Wartezeiten</h1>
+                    <p class="text-secondary">Melden Sie Beschwerden oder Wartezeiten</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Beschwerde / Wartezeit melden</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="complaint-form">
+                            <div class="form-group">
+                                <label class="form-label">Art der Meldung *</label>
+                                <select class="form-control form-select" name="complaintType" required>
+                                    <option value="">Bitte wählen...</option>
+                                    <option value="complaint">Kundenbeschwerde</option>
+                                    <option value="delay">Verzögerung/Wartezeit</option>
+                                    <option value="quality">Qualitätsmangel</option>
+                                    <option value="other">Sonstiges</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Auftrags-ID</label>
+                                <input type="text" class="form-control" name="orderId" 
+                                       placeholder="Falls bezogen auf einen Auftrag">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Kundenname</label>
+                                <input type="text" class="form-control" name="customerName">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Beschreibung *</label>
+                                <textarea class="form-control form-textarea" name="description" required 
+                                          placeholder="Detaillierte Beschreibung der Beschwerde oder Wartezeit..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Dringlichkeit</label>
+                                <select class="form-control form-select" name="urgency">
+                                    <option value="low">Niedrig</option>
+                                    <option value="medium">Mittel</option>
+                                    <option value="high">Hoch</option>
+                                    <option value="critical">Kritisch</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-warning btn-full">
+                                    ⚠️ Meldung absenden
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile Section -->
+            <section id="profile" class="content-section">
+                <div class="section-header">
+                    <h1>👤 Profil</h1>
+                    <p class="text-secondary">Ihre Benutzerinformationen</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Benutzerinformationen</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="user-info">
+                            <!-- User information will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../shared/utils/auth.js"></script>
+    <script src="../shared/utils/n8n.js"></script>
+    <script src="../shared/components/ui.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
