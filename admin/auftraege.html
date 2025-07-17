@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aufträge - AMP Admin</title>
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="../shared/styles/base.css">
+    <link rel="stylesheet" href="../shared/styles/components.css">
+    
+    <!-- Admin Specific Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container nav-container">
+            <a href="index.html" class="nav-brand">⚙️ AMP Admin</a>
+            <button class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">📊 Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a href="auftraege.html" class="nav-link active">📋 Offene Aufträge</a>
+                </li>
+                <li class="nav-item">
+                    <a href="monteure.html" class="nav-link">👨‍🔧 Monteure</a>
+                </li>
+                <li class="nav-item">
+                    <a href="reports.html" class="nav-link">📈 Berichte</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="section-header">
+                <h1>📋 Alle Aufträge</h1>
+                <p class="text-secondary">Detaillierte Übersicht aller eingegangenen Aufträge</p>
+            </div>
+
+            <!-- Order Filters -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Filter & Suche</h3>
+                </div>
+                <div class="card-body">
+                    <div class="filters">
+                        <select class="form-control" id="statusFilter">
+                            <option value="">Alle Status</option>
+                            <option value="new">Neu</option>
+                            <option value="assigned">Zugewiesen</option>
+                            <option value="progress">In Bearbeitung</option>
+                            <option value="completed">Abgeschlossen</option>
+                            <option value="cancelled">Storniert</option>
+                        </select>
+                        
+                        <select class="form-control" id="cityFilter">
+                            <option value="">Alle Städte</option>
+                            <option value="berlin">Berlin</option>
+                            <option value="hamburg">Hamburg</option>
+                            <option value="münchen">München</option>
+                            <option value="köln">Köln</option>
+                            <option value="frankfurt">Frankfurt</option>
+                        </select>
+                        
+                        <select class="form-control" id="serviceFilter">
+                            <option value="">Alle Services</option>
+                            <option value="heizung">Heizung</option>
+                            <option value="sanitär">Sanitär</option>
+                            <option value="elektro">Elektro</option>
+                            <option value="wartung">Wartung</option>
+                            <option value="notfall">Notfall</option>
+                        </select>
+                        
+                        <input type="text" class="form-control" placeholder="Suche nach Kunde, Auftrag..." id="searchInput">
+                        
+                        <button class="btn btn-primary" onclick="applyFilters()">🔍 Filter anwenden</button>
+                        <button class="btn btn-secondary" onclick="resetFilters()">🔄 Zurücksetzen</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🆕</div>
+                    <div class="stat-info">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Neue Aufträge</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">👨‍🔧</div>
+                    <div class="stat-info">
+                        <div class="stat-number">12</div>
+                        <div class="stat-label">Zugewiesen</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-info">
+                        <div class="stat-number">6</div>
+                        <div class="stat-label">In Bearbeitung</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <div class="stat-number">24</div>
+                        <div class="stat-label">Abgeschlossen</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Orders List -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Auftragsliste</h3>
+                    <div class="card-actions">
+                        <span class="badge">50 Aufträge gesamt</span>
+                        <button class="btn btn-sm btn-primary">📥 Export</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="orders-table">
+                        <div class="table-header">
+                            <div class="table-cell">Auftrag</div>
+                            <div class="table-cell">Kunde</div>
+                            <div class="table-cell">Service</div>
+                            <div class="table-cell">Priorität</div>
+                            <div class="table-cell">Status</div>
+                            <div class="table-cell">Monteur</div>
+                            <div class="table-cell">Wert</div>
+                            <div class="table-cell">Aktionen</div>
+                        </div>
+                        
+                        <!-- Order Row 1 -->
+                        <div class="table-row">
+                            <div class="table-cell">
+                                <strong>#2024-001</strong>
+                                <small>15.01.2024 09:30</small>
+                            </div>
+                            <div class="table-cell">
+                                <div>Hans Müller</div>
+                                <small>+49 30 12345678</small>
+                                <small>Berlin 10115</small>
+                            </div>
+                            <div class="table-cell">
+                                <div>Heizungsinstallation</div>
+                                <small>Neue Gasheizung</small>
+                            </div>
+                            <div class="table-cell">
+                                <span class="priority-badge priority-high">Hoch</span>
+                            </div>
+                            <div class="table-cell">
+                                <span class="status-badge status-new">Neu</span>
+                            </div>
+                            <div class="table-cell">
+                                <select class="form-control form-control-sm">
+                                    <option>Monteur zuweisen...</option>
+                                    <option>Max Mustermann</option>
+                                    <option>Anna Schmidt</option>
+                                    <option>Peter Weber</option>
+                                </select>
+                            </div>
+                            <div class="table-cell">
+                                <strong>€ 2.400</strong>
+                            </div>
+                            <div class="table-cell">
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-primary" onclick="viewOrder('#2024-001')">👁️</button>
+                                    <button class="btn btn-sm btn-success" onclick="assignOrder('#2024-001')">✅</button>
+                                    <button class="btn btn-sm btn-warning" onclick="contactCustomer('Hans Müller')">📞</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Order Row 2 -->
+                        <div class="table-row">
+                            <div class="table-cell">
+                                <strong>#2024-002</strong>
+                                <small>15.01.2024 08:15</small>
+                            </div>
+                            <div class="table-cell">
+                                <div>Maria Schmidt</div>
+                                <small>+49 40 98765432</small>
+                                <small>Hamburg 20095</small>
+                            </div>
+                            <div class="table-cell">
+                                <div>Rohrreparatur</div>
+                                <small>Undichte Leitung</small>
+                            </div>
+                            <div class="table-cell">
+                                <span class="priority-badge priority-medium">Mittel</span>
+                            </div>
+                            <div class="table-cell">
+                                <span class="status-badge status-assigned">Zugewiesen</span>
+                            </div>
+                            <div class="table-cell">
+                                <div class="monteur-assigned">
+                                    <strong>Max Mustermann</strong>
+                                    <small>Unterwegs seit 10:30</small>
+                                </div>
+                            </div>
+                            <div class="table-cell">
+                                <strong>€ 180</strong>
+                            </div>
+                            <div class="table-cell">
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-primary" onclick="viewOrder('#2024-002')">👁️</button>
+                                    <button class="btn btn-sm btn-info" onclick="trackMonteur('Max Mustermann')">📍</button>
+                                    <button class="btn btn-sm btn-warning" onclick="contactCustomer('Maria Schmidt')">📞</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Order Row 3 -->
+                        <div class="table-row">
+                            <div class="table-cell">
+                                <strong>#2024-003</strong>
+                                <small>15.01.2024 07:45</small>
+                            </div>
+                            <div class="table-cell">
+                                <div>Thomas Weber</div>
+                                <small>+49 89 55555555</small>
+                                <small>München 80331</small>
+                            </div>
+                            <div class="table-cell">
+                                <div>Wartung</div>
+                                <small>Jahresinspektion</small>
+                            </div>
+                            <div class="table-cell">
+                                <span class="priority-badge priority-low">Niedrig</span>
+                            </div>
+                            <div class="table-cell">
+                                <span class="status-badge status-progress">In Bearbeitung</span>
+                            </div>
+                            <div class="table-cell">
+                                <div class="monteur-assigned">
+                                    <strong>Anna Schmidt</strong>
+                                    <small>Vor Ort seit 08:00</small>
+                                </div>
+                            </div>
+                            <div class="table-cell">
+                                <strong>€ 120</strong>
+                            </div>
+                            <div class="table-cell">
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-primary" onclick="viewOrder('#2024-003')">👁️</button>
+                                    <button class="btn btn-sm btn-info" onclick="trackMonteur('Anna Schmidt')">📍</button>
+                                    <button class="btn btn-sm btn-success" onclick="markCompleted('#2024-003')">✅</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Order Row 4 -->
+                        <div class="table-row">
+                            <div class="table-cell">
+                                <strong>#2024-004</strong>
+                                <small>14.01.2024 16:20</small>
+                            </div>
+                            <div class="table-cell">
+                                <div>Lisa Braun</div>
+                                <small>+49 221 77777777</small>
+                                <small>Köln 50667</small>
+                            </div>
+                            <div class="table-cell">
+                                <div>Elektroinstallation</div>
+                                <small>Smart Home Setup</small>
+                            </div>
+                            <div class="table-cell">
+                                <span class="priority-badge priority-medium">Mittel</span>
+                            </div>
+                            <div class="table-cell">
+                                <span class="status-badge status-completed">Abgeschlossen</span>
+                            </div>
+                            <div class="table-cell">
+                                <div class="monteur-assigned">
+                                    <strong>Peter Weber</strong>
+                                    <small>Abgeschlossen 14:30</small>
+                                </div>
+                            </div>
+                            <div class="table-cell">
+                                <strong>€ 850</strong>
+                            </div>
+                            <div class="table-cell">
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-primary" onclick="viewOrder('#2024-004')">👁️</button>
+                                    <button class="btn btn-sm btn-success" onclick="generateInvoice('#2024-004')">🧾</button>
+                                    <button class="btn btn-sm btn-info" onclick="requestFeedback('#2024-004')">💬</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Order Row 5 -->
+                        <div class="table-row">
+                            <div class="table-cell">
+                                <strong>#2024-005</strong>
+                                <small>14.01.2024 14:10</small>
+                            </div>
+                            <div class="table-cell">
+                                <div>Michael Fischer</div>
+                                <small>+49 69 99999999</small>
+                                <small>Frankfurt 60311</small>
+                            </div>
+                            <div class="table-cell">
+                                <div>Notfall-Reparatur</div>
+                                <small>Wasserrohrbruch</small>
+                            </div>
+                            <div class="table-cell">
+                                <span class="priority-badge priority-urgent">Notfall</span>
+                            </div>
+                            <div class="table-cell">
+                                <span class="status-badge status-completed">Abgeschlossen</span>
+                            </div>
+                            <div class="table-cell">
+                                <div class="monteur-assigned">
+                                    <strong>Max Mustermann</strong>
+                                    <small>Abgeschlossen 16:45</small>
+                                </div>
+                            </div>
+                            <div class="table-cell">
+                                <strong>€ 320</strong>
+                            </div>
+                            <div class="table-cell">
+                                <div class="action-buttons">
+                                    <button class="btn btn-sm btn-primary" onclick="viewOrder('#2024-005')">👁️</button>
+                                    <button class="btn btn-sm btn-success" onclick="generateInvoice('#2024-005')">🧾</button>
+                                    <button class="btn btn-sm btn-info" onclick="requestFeedback('#2024-005')">💬</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div class="pagination">
+                        <button class="btn btn-sm btn-secondary" disabled>« Vorherige</button>
+                        <span class="pagination-info">Seite 1 von 5 (50 Einträge)</span>
+                        <button class="btn btn-sm btn-secondary">Nächste »</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Shared JavaScript -->
+    <script src="../shared/components/ui.js"></script>
+    
+    <!-- Page-specific JavaScript -->
+    <script>
+        // Additional styles for this page
+        const additionalStyles = `
+            .priority-badge {
+                padding: var(--spacing-xs) var(--spacing-sm);
+                border-radius: var(--radius-sm);
+                font-size: var(--font-size-xs);
+                font-weight: 600;
+                text-align: center;
+                display: inline-block;
+            }
+            
+            .priority-urgent {
+                background: var(--error-color);
+                color: white;
+            }
+            
+            .priority-high {
+                background: var(--warning-color);
+                color: white;
+            }
+            
+            .priority-medium {
+                background: var(--info-color);
+                color: white;
+            }
+            
+            .priority-low {
+                background: var(--secondary-color);
+                color: white;
+            }
+            
+            .action-buttons {
+                display: flex;
+                gap: var(--spacing-xs);
+                flex-wrap: wrap;
+            }
+            
+            .pagination {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: var(--spacing-lg);
+                padding-top: var(--spacing-lg);
+                border-top: 1px solid var(--border-color);
+            }
+            
+            .pagination-info {
+                color: var(--text-secondary);
+                font-size: var(--font-size-sm);
+            }
+            
+            .card-actions {
+                display: flex;
+                gap: var(--spacing-sm);
+                align-items: center;
+            }
+        `;
+        
+        // Add styles to page
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = additionalStyles;
+        document.head.appendChild(styleSheet);
+        
+        // Page-specific functions
+        function applyFilters() {
+            console.log('Applying filters...');
+            // Implementation for filtering
+        }
+        
+        function resetFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('cityFilter').value = '';
+            document.getElementById('serviceFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            console.log('Filters reset');
+        }
+        
+        function viewOrder(orderNumber) {
+            console.log(`Viewing order: ${orderNumber}`);
+        }
+        
+        function assignOrder(orderNumber) {
+            console.log(`Assigning order: ${orderNumber}`);
+        }
+        
+        function contactCustomer(customerName) {
+            console.log(`Contacting customer: ${customerName}`);
+        }
+        
+        function trackMonteur(monteurName) {
+            console.log(`Tracking monteur: ${monteurName}`);
+        }
+        
+        function markCompleted(orderNumber) {
+            console.log(`Marking order completed: ${orderNumber}`);
+        }
+        
+        function generateInvoice(orderNumber) {
+            console.log(`Generating invoice for: ${orderNumber}`);
+        }
+        
+        function requestFeedback(orderNumber) {
+            console.log(`Requesting feedback for: ${orderNumber}`);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMP Admin - Auftragsmanager Pro</title>
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="../shared/styles/base.css">
+    <link rel="stylesheet" href="../shared/styles/components.css">
+    
+    <!-- Admin Specific Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container nav-container">
+            <a href="#" class="nav-brand">⚙️ AMP Admin</a>
+            <button class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-tab="dashboard">
+                        📊 Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-tab="orders">
+                        📋 Offene Aufträge
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-tab="revenue">
+                        💰 Umsätze
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-tab="assignments">
+                        👨‍🔧 Monteurzuweisung
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-tab="reports">
+                        📈 Berichte
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h1>📊 Admin Dashboard</h1>
+                    <p class="text-secondary">Überblick über alle Geschäftsaktivitäten</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-info">
+                            <div class="stat-number">24</div>
+                            <div class="stat-label">Offene Aufträge</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <div class="stat-number">€ 15.240</div>
+                            <div class="stat-label">Umsatz heute</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">👨‍🔧</div>
+                        <div class="stat-info">
+                            <div class="stat-number">8</div>
+                            <div class="stat-label">Aktive Monteure</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <div class="stat-number">12</div>
+                            <div class="stat-label">Abgeschlossen</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Neueste Aufträge</h3>
+                        <a href="#" class="btn btn-sm btn-secondary" onclick="showTab('orders')">Alle anzeigen</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="order-list">
+                            <div class="order-item">
+                                <div class="order-info">
+                                    <div class="order-title">#2024-001</div>
+                                    <div class="order-subtitle">Müller, Hans - Heizungsinstallation</div>
+                                    <div class="order-meta">Vor 15 Min • PLZ 10115</div>
+                                </div>
+                                <div class="order-status status-new">Neu</div>
+                            </div>
+                            
+                            <div class="order-item">
+                                <div class="order-info">
+                                    <div class="order-title">#2024-002</div>
+                                    <div class="order-subtitle">Schmidt, Maria - Rohrreparatur</div>
+                                    <div class="order-meta">Vor 1 Std • PLZ 20095</div>
+                                </div>
+                                <div class="order-status status-assigned">Zugewiesen</div>
+                            </div>
+                            
+                            <div class="order-item">
+                                <div class="order-info">
+                                    <div class="order-title">#2024-003</div>
+                                    <div class="order-subtitle">Weber, Thomas - Wartung</div>
+                                    <div class="order-meta">Vor 2 Std • PLZ 80331</div>
+                                </div>
+                                <div class="order-status status-progress">In Bearbeitung</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Orders Section -->
+            <section id="orders" class="content-section">
+                <div class="section-header">
+                    <h1>📋 Offene Aufträge</h1>
+                    <p class="text-secondary">Alle eingegangenen Aufträge verwalten</p>
+                </div>
+
+                <!-- Order Filters -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="filters">
+                            <select class="form-control" id="statusFilter">
+                                <option value="">Alle Status</option>
+                                <option value="new">Neu</option>
+                                <option value="assigned">Zugewiesen</option>
+                                <option value="progress">In Bearbeitung</option>
+                                <option value="completed">Abgeschlossen</option>
+                            </select>
+                            
+                            <select class="form-control" id="cityFilter">
+                                <option value="">Alle Städte</option>
+                                <option value="berlin">Berlin</option>
+                                <option value="hamburg">Hamburg</option>
+                                <option value="münchen">München</option>
+                            </select>
+                            
+                            <input type="text" class="form-control" placeholder="Suche nach Kunde..." id="searchInput">
+                            
+                            <button class="btn btn-primary">🔍 Filter anwenden</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Auftragsliste</h3>
+                        <span class="badge">24 Aufträge</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="orders-table">
+                            <div class="table-header">
+                                <div class="table-cell">Auftrag</div>
+                                <div class="table-cell">Kunde</div>
+                                <div class="table-cell">Service</div>
+                                <div class="table-cell">Status</div>
+                                <div class="table-cell">Monteur</div>
+                                <div class="table-cell">Aktionen</div>
+                            </div>
+                            
+                            <div class="table-row">
+                                <div class="table-cell">
+                                    <strong>#2024-001</strong>
+                                    <small>Vor 15 Min</small>
+                                </div>
+                                <div class="table-cell">
+                                    <div>Hans Müller</div>
+                                    <small>+49 30 12345678</small>
+                                </div>
+                                <div class="table-cell">
+                                    <div>Heizungsinstallation</div>
+                                    <small>Notfall</small>
+                                </div>
+                                <div class="table-cell">
+                                    <span class="status-badge status-new">Neu</span>
+                                </div>
+                                <div class="table-cell">
+                                    <select class="form-control form-control-sm">
+                                        <option>Monteur zuweisen...</option>
+                                        <option>Max Mustermann</option>
+                                        <option>Anna Schmidt</option>
+                                        <option>Peter Weber</option>
+                                    </select>
+                                </div>
+                                <div class="table-cell">
+                                    <button class="btn btn-sm btn-primary">👁️ Anzeigen</button>
+                                    <button class="btn btn-sm btn-success">✅ Zuweisen</button>
+                                </div>
+                            </div>
+                            
+                            <div class="table-row">
+                                <div class="table-cell">
+                                    <strong>#2024-002</strong>
+                                    <small>Vor 1 Std</small>
+                                </div>
+                                <div class="table-cell">
+                                    <div>Maria Schmidt</div>
+                                    <small>+49 40 98765432</small>
+                                </div>
+                                <div class="table-cell">
+                                    <div>Rohrreparatur</div>
+                                    <small>Standard</small>
+                                </div>
+                                <div class="table-cell">
+                                    <span class="status-badge status-assigned">Zugewiesen</span>
+                                </div>
+                                <div class="table-cell">
+                                    <div class="monteur-assigned">
+                                        <strong>Max Mustermann</strong>
+                                        <small>Unterwegs</small>
+                                    </div>
+                                </div>
+                                <div class="table-cell">
+                                    <button class="btn btn-sm btn-primary">👁️ Anzeigen</button>
+                                    <button class="btn btn-sm btn-warning">📞 Kontakt</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Revenue Section -->
+            <section id="revenue" class="content-section">
+                <div class="section-header">
+                    <h1>💰 Umsätze</h1>
+                    <p class="text-secondary">Finanzübersicht und Umsatzanalyse</p>
+                </div>
+
+                <!-- Revenue Stats -->
+                <div class="revenue-grid">
+                    <div class="revenue-card">
+                        <div class="revenue-header">
+                            <h3>Heute</h3>
+                            <span class="revenue-amount">€ 15.240</span>
+                        </div>
+                        <div class="revenue-change positive">+12% vs. gestern</div>
+                    </div>
+                    
+                    <div class="revenue-card">
+                        <div class="revenue-header">
+                            <h3>Diese Woche</h3>
+                            <span class="revenue-amount">€ 89.560</span>
+                        </div>
+                        <div class="revenue-change positive">+8% vs. letzte Woche</div>
+                    </div>
+                    
+                    <div class="revenue-card">
+                        <div class="revenue-header">
+                            <h3>Diesen Monat</h3>
+                            <span class="revenue-amount">€ 324.780</span>
+                        </div>
+                        <div class="revenue-change negative">-3% vs. letzten Monat</div>
+                    </div>
+                </div>
+
+                <!-- Revenue Chart Placeholder -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Umsatzverlauf (letzte 30 Tage)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-placeholder">
+                            <div class="chart-bars">
+                                <div class="chart-bar" style="height: 60%"></div>
+                                <div class="chart-bar" style="height: 80%"></div>
+                                <div class="chart-bar" style="height: 45%"></div>
+                                <div class="chart-bar" style="height: 90%"></div>
+                                <div class="chart-bar" style="height: 70%"></div>
+                                <div class="chart-bar" style="height: 85%"></div>
+                                <div class="chart-bar" style="height: 95%"></div>
+                            </div>
+                            <p class="text-center text-secondary mt-lg">
+                                Chart-Integration für detaillierte Umsatzanalyse
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Assignments Section -->
+            <section id="assignments" class="content-section">
+                <div class="section-header">
+                    <h1>👨‍🔧 Monteurzuweisung</h1>
+                    <p class="text-secondary">Monteure verwalten und Aufträge zuweisen</p>
+                </div>
+
+                <!-- Monteur Overview -->
+                <div class="monteurs-grid">
+                    <div class="monteur-card available">
+                        <div class="monteur-status">🟢 Verfügbar</div>
+                        <div class="monteur-info">
+                            <h4>Max Mustermann</h4>
+                            <p>Heizung & Sanitär</p>
+                            <div class="monteur-stats">
+                                <span>📍 Berlin</span>
+                                <span>⭐ 4.8</span>
+                                <span>✅ 45 Aufträge</span>
+                            </div>
+                        </div>
+                        <div class="monteur-actions">
+                            <button class="btn btn-sm btn-primary">📋 Zuweisen</button>
+                            <button class="btn btn-sm btn-secondary">👁️ Details</button>
+                        </div>
+                    </div>
+                    
+                    <div class="monteur-card busy">
+                        <div class="monteur-status">🟡 Beschäftigt</div>
+                        <div class="monteur-info">
+                            <h4>Anna Schmidt</h4>
+                            <p>Elektro & Smart Home</p>
+                            <div class="monteur-stats">
+                                <span>📍 Hamburg</span>
+                                <span>⭐ 4.9</span>
+                                <span>✅ 38 Aufträge</span>
+                            </div>
+                        </div>
+                        <div class="monteur-actions">
+                            <button class="btn btn-sm btn-warning">⏰ Warteschlange</button>
+                            <button class="btn btn-sm btn-secondary">👁️ Details</button>
+                        </div>
+                    </div>
+                    
+                    <div class="monteur-card available">
+                        <div class="monteur-status">🟢 Verfügbar</div>
+                        <div class="monteur-info">
+                            <h4>Peter Weber</h4>
+                            <p>Klempnerei & Reparatur</p>
+                            <div class="monteur-stats">
+                                <span>📍 München</span>
+                                <span>⭐ 4.7</span>
+                                <span>✅ 52 Aufträge</span>
+                            </div>
+                        </div>
+                        <div class="monteur-actions">
+                            <button class="btn btn-sm btn-primary">📋 Zuweisen</button>
+                            <button class="btn btn-sm btn-secondary">👁️ Details</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assignment Queue -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Warteschlange unzugewiesener Aufträge</h3>
+                        <span class="badge badge-warning">5 wartend</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="assignment-queue">
+                            <div class="queue-item">
+                                <div class="queue-order">
+                                    <strong>#2024-005</strong>
+                                    <span>Notfall - Wasserrohrbruch</span>
+                                </div>
+                                <div class="queue-location">📍 Berlin, Mitte</div>
+                                <div class="queue-time">⏰ Vor 5 Min</div>
+                                <button class="btn btn-sm btn-success">Sofort zuweisen</button>
+                            </div>
+                            
+                            <div class="queue-item">
+                                <div class="queue-order">
+                                    <strong>#2024-006</strong>
+                                    <span>Wartung - Heizungscheck</span>
+                                </div>
+                                <div class="queue-location">📍 Hamburg, Altona</div>
+                                <div class="queue-time">⏰ Vor 12 Min</div>
+                                <button class="btn btn-sm btn-primary">Zuweisen</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports" class="content-section">
+                <div class="section-header">
+                    <h1>📈 Berichte</h1>
+                    <p class="text-secondary">Detaillierte Auswertungen und Statistiken</p>
+                </div>
+
+                <!-- Report Filters -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Berichtszeitraum auswählen</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="report-filters">
+                            <div class="form-group">
+                                <label class="form-label">Zeitraum</label>
+                                <select class="form-control">
+                                    <option>Heute</option>
+                                    <option>Letzte 7 Tage</option>
+                                    <option>Letzte 30 Tage</option>
+                                    <option>Diesen Monat</option>
+                                    <option>Letzten Monat</option>
+                                    <option>Benutzerdefiniert</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Berichtstyp</label>
+                                <select class="form-control">
+                                    <option>Umsatzauswertung</option>
+                                    <option>Monteur-Performance</option>
+                                    <option>Kundenanalyse</option>
+                                    <option>Servicebereiche</option>
+                                </select>
+                            </div>
+                            
+                            <button class="btn btn-primary">📊 Bericht erstellen</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample Reports -->
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <div class="report-header">
+                            <h4>📋 Auftragsstatistik</h4>
+                            <span class="report-date">Heute</span>
+                        </div>
+                        <div class="report-content">
+                            <div class="report-stat">
+                                <span class="stat-label">Neue Aufträge:</span>
+                                <span class="stat-value">12</span>
+                            </div>
+                            <div class="report-stat">
+                                <span class="stat-label">Abgeschlossen:</span>
+                                <span class="stat-value">8</span>
+                            </div>
+                            <div class="report-stat">
+                                <span class="stat-label">In Bearbeitung:</span>
+                                <span class="stat-value">16</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="report-card">
+                        <div class="report-header">
+                            <h4>👨‍🔧 Top Monteur</h4>
+                            <span class="report-date">Diese Woche</span>
+                        </div>
+                        <div class="report-content">
+                            <div class="top-monteur">
+                                <strong>Anna Schmidt</strong>
+                                <div class="monteur-metrics">
+                                    <span>12 Aufträge</span>
+                                    <span>⭐ 4.9</span>
+                                    <span>€ 8.400</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="report-card">
+                        <div class="report-header">
+                            <h4>🏆 Service-Ranking</h4>
+                            <span class="report-date">Diesen Monat</span>
+                        </div>
+                        <div class="report-content">
+                            <div class="service-ranking">
+                                <div class="ranking-item">
+                                    <span>1. Heizungsreparatur</span>
+                                    <span>45%</span>
+                                </div>
+                                <div class="ranking-item">
+                                    <span>2. Rohrreparatur</span>
+                                    <span>28%</span>
+                                </div>
+                                <div class="ranking-item">
+                                    <span>3. Wartung</span>
+                                    <span>27%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Shared JavaScript -->
+    <script src="../shared/components/ui.js"></script>
+    
+    <!-- Admin App JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>

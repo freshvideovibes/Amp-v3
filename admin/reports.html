@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berichte - AMP Admin</title>
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="../shared/styles/base.css">
+    <link rel="stylesheet" href="../shared/styles/components.css">
+    
+    <!-- Admin Specific Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container nav-container">
+            <a href="index.html" class="nav-brand">⚙️ AMP Admin</a>
+            <button class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">📊 Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a href="auftraege.html" class="nav-link">📋 Offene Aufträge</a>
+                </li>
+                <li class="nav-item">
+                    <a href="monteure.html" class="nav-link">👨‍🔧 Monteure</a>
+                </li>
+                <li class="nav-item">
+                    <a href="reports.html" class="nav-link active">📈 Berichte</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="section-header">
+                <h1>📈 Berichte & Analysen</h1>
+                <p class="text-secondary">Detaillierte Auswertungen und Geschäftsstatistiken</p>
+            </div>
+
+            <!-- Report Controls -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Berichtsparameter</h3>
+                </div>
+                <div class="card-body">
+                    <div class="report-controls">
+                        <div class="control-group">
+                            <label class="form-label">Zeitraum</label>
+                            <select class="form-control" id="timeRangeSelect">
+                                <option value="today">Heute</option>
+                                <option value="yesterday">Gestern</option>
+                                <option value="week" selected>Diese Woche</option>
+                                <option value="month">Dieser Monat</option>
+                                <option value="quarter">Dieses Quartal</option>
+                                <option value="year">Dieses Jahr</option>
+                                <option value="custom">Benutzerdefiniert</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="form-label">Berichtstyp</label>
+                            <select class="form-control" id="reportTypeSelect">
+                                <option value="overview">Gesamtübersicht</option>
+                                <option value="revenue">Umsatzanalyse</option>
+                                <option value="monteur">Monteur-Performance</option>
+                                <option value="customer">Kundenanalyse</option>
+                                <option value="service">Service-Bereiche</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="form-label">Format</label>
+                            <select class="form-control" id="formatSelect">
+                                <option value="web">Web-Ansicht</option>
+                                <option value="pdf">PDF Download</option>
+                                <option value="excel">Excel Export</option>
+                                <option value="csv">CSV Export</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-actions">
+                            <button class="btn btn-primary" onclick="generateReport()">
+                                📊 Bericht erstellen
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetControls()">
+                                🔄 Zurücksetzen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <div class="stat-number">€ 89.560</div>
+                        <div class="stat-label">Umsatz diese Woche</div>
+                        <div class="stat-change positive">+12% vs. letzte Woche</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-info">
+                        <div class="stat-number">156</div>
+                        <div class="stat-label">Aufträge diese Woche</div>
+                        <div class="stat-change positive">+8% vs. letzte Woche</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-info">
+                        <div class="stat-number">4.7</div>
+                        <div class="stat-label">Ø Kundenbewertung</div>
+                        <div class="stat-change positive">+0.2 vs. letzte Woche</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-info">
+                        <div class="stat-number">94%</div>
+                        <div class="stat-label">Erfolgsquote</div>
+                        <div class="stat-change neutral">±0% vs. letzte Woche</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="reports-grid">
+                <!-- Revenue Chart -->
+                <div class="report-card">
+                    <div class="report-header">
+                        <h4>💰 Umsatzentwicklung (letzte 30 Tage)</h4>
+                        <button class="btn btn-sm btn-secondary" onclick="exportChart('revenue')">📥 Export</button>
+                    </div>
+                    <div class="report-content">
+                        <div class="chart-container">
+                            <div class="chart-placeholder large">
+                                <div class="chart-bars revenue-chart">
+                                    <div class="chart-bar" style="height: 45%" title="Tag 1: €1.200"></div>
+                                    <div class="chart-bar" style="height: 60%" title="Tag 2: €1.580"></div>
+                                    <div class="chart-bar" style="height: 35%" title="Tag 3: €920"></div>
+                                    <div class="chart-bar" style="height: 80%" title="Tag 4: €2.100"></div>
+                                    <div class="chart-bar" style="height: 70%" title="Tag 5: €1.850"></div>
+                                    <div class="chart-bar" style="height: 90%" title="Tag 6: €2.380"></div>
+                                    <div class="chart-bar" style="height: 55%" title="Tag 7: €1.450"></div>
+                                    <div class="chart-bar" style="height: 75%" title="Tag 8: €1.980"></div>
+                                    <div class="chart-bar" style="height: 65%" title="Tag 9: €1.720"></div>
+                                    <div class="chart-bar" style="height: 85%" title="Tag 10: €2.250"></div>
+                                </div>
+                                <div class="chart-legend">
+                                    <span>📊 Tägliche Umsätze der letzten 10 Tage</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Types Chart -->
+                <div class="report-card">
+                    <div class="report-header">
+                        <h4>🔧 Auftragsverteilung nach Service</h4>
+                        <button class="btn btn-sm btn-secondary" onclick="exportChart('services')">📥 Export</button>
+                    </div>
+                    <div class="report-content">
+                        <div class="pie-chart-container">
+                            <div class="service-breakdown">
+                                <div class="service-item">
+                                    <div class="service-color heizung"></div>
+                                    <span class="service-label">Heizung</span>
+                                    <span class="service-percentage">45%</span>
+                                </div>
+                                <div class="service-item">
+                                    <div class="service-color sanitaer"></div>
+                                    <span class="service-label">Sanitär</span>
+                                    <span class="service-percentage">28%</span>
+                                </div>
+                                <div class="service-item">
+                                    <div class="service-color elektro"></div>
+                                    <span class="service-label">Elektro</span>
+                                    <span class="service-percentage">18%</span>
+                                </div>
+                                <div class="service-item">
+                                    <div class="service-color wartung"></div>
+                                    <span class="service-label">Wartung</span>
+                                    <span class="service-percentage">9%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monteur Performance -->
+                <div class="report-card">
+                    <div class="report-header">
+                        <h4>👨‍🔧 Top Monteure (diese Woche)</h4>
+                        <button class="btn btn-sm btn-secondary" onclick="exportChart('monteurs')">📥 Export</button>
+                    </div>
+                    <div class="report-content">
+                        <div class="monteur-ranking">
+                            <div class="ranking-item">
+                                <div class="rank">1</div>
+                                <div class="monteur-info">
+                                    <strong>Anna Schmidt</strong>
+                                    <small>Elektro & Smart Home</small>
+                                </div>
+                                <div class="performance-metrics">
+                                    <span class="metric">12 Aufträge</span>
+                                    <span class="metric">€ 8.400</span>
+                                    <span class="metric rating">⭐ 4.9</span>
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-item">
+                                <div class="rank">2</div>
+                                <div class="monteur-info">
+                                    <strong>Peter Weber</strong>
+                                    <small>Klempnerei & Reparatur</small>
+                                </div>
+                                <div class="performance-metrics">
+                                    <span class="metric">10 Aufträge</span>
+                                    <span class="metric">€ 6.800</span>
+                                    <span class="metric rating">⭐ 4.7</span>
+                                </div>
+                            </div>
+                            
+                            <div class="ranking-item">
+                                <div class="rank">3</div>
+                                <div class="monteur-info">
+                                    <strong>Max Mustermann</strong>
+                                    <small>Heizung & Sanitär</small>
+                                </div>
+                                <div class="performance-metrics">
+                                    <span class="metric">9 Aufträge</span>
+                                    <span class="metric">€ 6.200</span>
+                                    <span class="metric rating">⭐ 4.8</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Satisfaction -->
+                <div class="report-card">
+                    <div class="report-header">
+                        <h4>😊 Kundenzufriedenheit</h4>
+                        <button class="btn btn-sm btn-secondary" onclick="exportChart('satisfaction')">📥 Export</button>
+                    </div>
+                    <div class="report-content">
+                        <div class="satisfaction-metrics">
+                            <div class="satisfaction-item">
+                                <div class="satisfaction-icon">😍</div>
+                                <div class="satisfaction-info">
+                                    <span class="satisfaction-label">Sehr zufrieden</span>
+                                    <span class="satisfaction-value">68%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="satisfaction-item">
+                                <div class="satisfaction-icon">😊</div>
+                                <div class="satisfaction-info">
+                                    <span class="satisfaction-label">Zufrieden</span>
+                                    <span class="satisfaction-value">26%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="satisfaction-item">
+                                <div class="satisfaction-icon">😐</div>
+                                <div class="satisfaction-info">
+                                    <span class="satisfaction-label">Neutral</span>
+                                    <span class="satisfaction-value">4%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="satisfaction-item">
+                                <div class="satisfaction-icon">😞</div>
+                                <div class="satisfaction-info">
+                                    <span class="satisfaction-label">Unzufrieden</span>
+                                    <span class="satisfaction-value">2%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="satisfaction-summary">
+                            <strong>Durchschnittsbewertung: 4.7/5 ⭐</strong>
+                            <small>Basierend auf 156 Bewertungen diese Woche</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Summary -->
+                <div class="report-card">
+                    <div class="report-header">
+                        <h4>💼 Finanzübersicht</h4>
+                        <button class="btn btn-sm btn-secondary" onclick="exportChart('financial')">📥 Export</button>
+                    </div>
+                    <div class="report-content">
+                        <div class="financial-summary">
+                            <div class="financial-item">
+                                <span class="financial-label">Gesamtumsatz</span>
+                                <span class="financial-value positive">€ 89.560</span>
+                            </div>
+                            
+                            <div class="financial-item">
+                                <span class="financial-label">Monteur-Kosten</span>
+                                <span class="financial-value negative">€ 52.400</span>
+                            </div>
+                            
+                            <div class="financial-item">
+                                <span class="financial-label">Betriebskosten</span>
+                                <span class="financial-value negative">€ 12.800</span>
+                            </div>
+                            
+                            <div class="financial-item total">
+                                <span class="financial-label">Nettogewinn</span>
+                                <span class="financial-value positive">€ 24.360</span>
+                            </div>
+                            
+                            <div class="profit-margin">
+                                <strong>Gewinnmarge: 27.2%</strong>
+                                <small class="trend positive">+2.1% vs. letzte Woche</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regional Performance -->
+                <div class="report-card">
+                    <div class="report-header">
+                        <h4>🗺️ Regionale Leistung</h4>
+                        <button class="btn btn-sm btn-secondary" onclick="exportChart('regional')">📥 Export</button>
+                    </div>
+                    <div class="report-content">
+                        <div class="regional-performance">
+                            <div class="region-item">
+                                <div class="region-info">
+                                    <strong>Berlin</strong>
+                                    <small>45 Aufträge</small>
+                                </div>
+                                <div class="region-metrics">
+                                    <span class="revenue">€ 28.400</span>
+                                    <span class="growth positive">+15%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="region-item">
+                                <div class="region-info">
+                                    <strong>Hamburg</strong>
+                                    <small>32 Aufträge</small>
+                                </div>
+                                <div class="region-metrics">
+                                    <span class="revenue">€ 21.200</span>
+                                    <span class="growth positive">+8%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="region-item">
+                                <div class="region-info">
+                                    <strong>München</strong>
+                                    <small>38 Aufträge</small>
+                                </div>
+                                <div class="region-metrics">
+                                    <span class="revenue">€ 25.600</span>
+                                    <span class="growth positive">+12%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="region-item">
+                                <div class="region-info">
+                                    <strong>Köln</strong>
+                                    <small>24 Aufträge</small>
+                                </div>
+                                <div class="region-metrics">
+                                    <span class="revenue">€ 14.360</span>
+                                    <span class="growth negative">-3%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📥 Export & Teilen</h3>
+                </div>
+                <div class="card-body">
+                    <div class="export-options">
+                        <button class="btn btn-primary" onclick="exportFullReport()">
+                            📊 Vollständigen Bericht exportieren
+                        </button>
+                        <button class="btn btn-secondary" onclick="scheduleReport()">
+                            📅 Automatischen Bericht einrichten
+                        </button>
+                        <button class="btn btn-info" onclick="shareReport()">
+                            📤 Bericht teilen
+                        </button>
+                        <button class="btn btn-success" onclick="emailReport()">
+                            📧 Per E-Mail senden
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Shared JavaScript -->
+    <script src="../shared/components/ui.js"></script>
+    
+    <!-- Page-specific JavaScript -->
+    <script>
+        // Additional styles for this page
+        const additionalStyles = `
+            .report-controls {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr auto;
+                gap: var(--spacing-lg);
+                align-items: end;
+            }
+            
+            .control-group {
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .control-actions {
+                display: flex;
+                gap: var(--spacing-sm);
+            }
+            
+            .stat-change {
+                font-size: var(--font-size-sm);
+                font-weight: 500;
+                margin-top: var(--spacing-xs);
+            }
+            
+            .stat-change.positive {
+                color: var(--success-color);
+            }
+            
+            .stat-change.negative {
+                color: var(--error-color);
+            }
+            
+            .stat-change.neutral {
+                color: var(--text-secondary);
+            }
+            
+            .chart-container {
+                padding: var(--spacing-lg);
+            }
+            
+            .chart-placeholder.large {
+                min-height: 300px;
+            }
+            
+            .revenue-chart {
+                height: 250px;
+            }
+            
+            .chart-legend {
+                text-align: center;
+                margin-top: var(--spacing-md);
+                color: var(--text-secondary);
+                font-size: var(--font-size-sm);
+            }
+            
+            .service-breakdown {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-md);
+                padding: var(--spacing-lg);
+            }
+            
+            .service-item {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-md);
+            }
+            
+            .service-color {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+            }
+            
+            .service-color.heizung { background: var(--error-color); }
+            .service-color.sanitaer { background: var(--primary-color); }
+            .service-color.elektro { background: var(--warning-color); }
+            .service-color.wartung { background: var(--success-color); }
+            
+            .service-label {
+                flex: 1;
+                color: var(--text-primary);
+            }
+            
+            .service-percentage {
+                font-weight: 600;
+                color: var(--primary-color);
+            }
+            
+            .monteur-ranking {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-md);
+                padding: var(--spacing-lg);
+            }
+            
+            .ranking-item {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-md);
+                padding: var(--spacing-md);
+                background: var(--bg-secondary);
+                border-radius: var(--radius-md);
+            }
+            
+            .rank {
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                background: var(--primary-color);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+            }
+            
+            .monteur-info {
+                flex: 1;
+            }
+            
+            .monteur-info strong {
+                display: block;
+                color: var(--text-primary);
+            }
+            
+            .monteur-info small {
+                color: var(--text-secondary);
+            }
+            
+            .performance-metrics {
+                display: flex;
+                gap: var(--spacing-md);
+            }
+            
+            .metric {
+                font-size: var(--font-size-sm);
+                color: var(--text-secondary);
+            }
+            
+            .metric.rating {
+                color: var(--warning-color);
+            }
+            
+            .satisfaction-metrics {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-md);
+                padding: var(--spacing-lg);
+            }
+            
+            .satisfaction-item {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-md);
+            }
+            
+            .satisfaction-icon {
+                font-size: var(--font-size-xl);
+                width: 40px;
+                text-align: center;
+            }
+            
+            .satisfaction-info {
+                flex: 1;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .satisfaction-label {
+                color: var(--text-primary);
+            }
+            
+            .satisfaction-value {
+                font-weight: 600;
+                color: var(--primary-color);
+            }
+            
+            .satisfaction-summary {
+                margin-top: var(--spacing-lg);
+                padding-top: var(--spacing-lg);
+                border-top: 1px solid var(--border-color);
+                text-align: center;
+            }
+            
+            .satisfaction-summary strong {
+                display: block;
+                color: var(--text-primary);
+                margin-bottom: var(--spacing-xs);
+            }
+            
+            .satisfaction-summary small {
+                color: var(--text-secondary);
+            }
+            
+            .financial-summary {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-md);
+                padding: var(--spacing-lg);
+            }
+            
+            .financial-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: var(--spacing-sm) 0;
+            }
+            
+            .financial-item.total {
+                border-top: 2px solid var(--border-color);
+                margin-top: var(--spacing-md);
+                padding-top: var(--spacing-lg);
+                font-weight: 600;
+            }
+            
+            .financial-label {
+                color: var(--text-primary);
+            }
+            
+            .financial-value.positive {
+                color: var(--success-color);
+                font-weight: 600;
+            }
+            
+            .financial-value.negative {
+                color: var(--error-color);
+                font-weight: 600;
+            }
+            
+            .profit-margin {
+                margin-top: var(--spacing-lg);
+                text-align: center;
+            }
+            
+            .profit-margin strong {
+                display: block;
+                color: var(--text-primary);
+                margin-bottom: var(--spacing-xs);
+            }
+            
+            .trend {
+                font-size: var(--font-size-sm);
+            }
+            
+            .trend.positive {
+                color: var(--success-color);
+            }
+            
+            .regional-performance {
+                display: flex;
+                flex-direction: column;
+                gap: var(--spacing-md);
+                padding: var(--spacing-lg);
+            }
+            
+            .region-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: var(--spacing-md);
+                background: var(--bg-secondary);
+                border-radius: var(--radius-md);
+            }
+            
+            .region-info strong {
+                display: block;
+                color: var(--text-primary);
+            }
+            
+            .region-info small {
+                color: var(--text-secondary);
+            }
+            
+            .region-metrics {
+                text-align: right;
+            }
+            
+            .region-metrics .revenue {
+                display: block;
+                font-weight: 600;
+                color: var(--text-primary);
+            }
+            
+            .region-metrics .growth {
+                font-size: var(--font-size-sm);
+                font-weight: 500;
+            }
+            
+            .region-metrics .growth.positive {
+                color: var(--success-color);
+            }
+            
+            .region-metrics .growth.negative {
+                color: var(--error-color);
+            }
+            
+            .export-options {
+                display: flex;
+                gap: var(--spacing-md);
+                flex-wrap: wrap;
+            }
+            
+            @media (max-width: 768px) {
+                .report-controls {
+                    grid-template-columns: 1fr;
+                    gap: var(--spacing-md);
+                }
+                
+                .control-actions {
+                    justify-content: center;
+                }
+                
+                .export-options {
+                    flex-direction: column;
+                }
+                
+                .performance-metrics {
+                    flex-direction: column;
+                    gap: var(--spacing-xs);
+                }
+            }
+        `;
+        
+        // Add styles to page
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = additionalStyles;
+        document.head.appendChild(styleSheet);
+        
+        // Page-specific functions
+        function generateReport() {
+            const timeRange = document.getElementById('timeRangeSelect').value;
+            const reportType = document.getElementById('reportTypeSelect').value;
+            const format = document.getElementById('formatSelect').value;
+            
+            console.log('Generating report:', { timeRange, reportType, format });
+            alert(`Bericht wird erstellt...\nZeitraum: ${timeRange}\nTyp: ${reportType}\nFormat: ${format}`);
+        }
+        
+        function resetControls() {
+            document.getElementById('timeRangeSelect').value = 'week';
+            document.getElementById('reportTypeSelect').value = 'overview';
+            document.getElementById('formatSelect').value = 'web';
+            console.log('Controls reset');
+        }
+        
+        function exportChart(chartType) {
+            console.log(`Exporting chart: ${chartType}`);
+            alert(`Chart "${chartType}" wird exportiert...`);
+        }
+        
+        function exportFullReport() {
+            console.log('Exporting full report...');
+            alert('Vollständiger Bericht wird als PDF erstellt...');
+        }
+        
+        function scheduleReport() {
+            console.log('Scheduling automatic report...');
+            alert('Dialog für automatische Berichte würde hier geöffnet');
+        }
+        
+        function shareReport() {
+            console.log('Sharing report...');
+            alert('Bericht-Sharing Dialog würde hier geöffnet');
+        }
+        
+        function emailReport() {
+            console.log('Emailing report...');
+            alert('E-Mail Dialog würde hier geöffnet');
+        }
+        
+        // Initialize tooltips for chart bars
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartBars = document.querySelectorAll('.chart-bar[title]');
+            chartBars.forEach(bar => {
+                bar.addEventListener('mouseover', function() {
+                    // Show tooltip functionality would go here
+                    console.log('Chart bar hovered:', this.title);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
