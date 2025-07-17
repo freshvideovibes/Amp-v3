@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMP Monteur - Auftragsmanager Pro</title>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="../shared/styles/base.css">
+    <link rel="stylesheet" href="../shared/styles/components.css">
+    
+    <!-- App Specific Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container nav-container">
+            <a href="#" class="nav-brand">🔧 AMP Monteur</a>
+            <button class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-tab="assigned-orders">
+                        📋 Meine Aufträge
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-tab="revenue-report">
+                        💰 Umsatz melden
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-tab="status-update">
+                        📊 Status aktualisieren
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-tab="profile">
+                        👤 Profil
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Assigned Orders Section -->
+            <section id="assigned-orders" class="content-section active">
+                <div class="section-header">
+                    <h1>📋 Meine zugewiesenen Aufträge</h1>
+                    <p class="text-secondary">Übersicht über Ihre aktuellen Aufträge</p>
+                </div>
+
+                <div class="orders-filter">
+                    <div class="filter-buttons">
+                        <button class="btn btn-sm filter-btn active" data-filter="all">
+                            Alle (<span id="count-all">0</span>)
+                        </button>
+                        <button class="btn btn-sm filter-btn" data-filter="pending">
+                            Ausstehend (<span id="count-pending">0</span>)
+                        </button>
+                        <button class="btn btn-sm filter-btn" data-filter="in_progress">
+                            In Bearbeitung (<span id="count-in-progress">0</span>)
+                        </button>
+                        <button class="btn btn-sm filter-btn" data-filter="completed">
+                            Abgeschlossen (<span id="count-completed">0</span>)
+                        </button>
+                    </div>
+                    <button class="btn btn-primary" id="refresh-orders">
+                        🔄 Aktualisieren
+                    </button>
+                </div>
+
+                <div id="orders-container" class="orders-grid">
+                    <!-- Orders will be populated here -->
+                </div>
+            </section>
+
+            <!-- Revenue Report Section -->
+            <section id="revenue-report" class="content-section">
+                <div class="section-header">
+                    <h1>💰 Umsatz melden</h1>
+                    <p class="text-secondary">Melden Sie abgeschlossene Aufträge und Umsätze</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Umsatzmeldung</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="revenue-form">
+                            <div class="form-group">
+                                <label class="form-label">Auftrags-ID *</label>
+                                <select class="form-control form-select" name="orderId" required>
+                                    <option value="">Auftrag auswählen...</option>
+                                    <!-- Will be populated dynamically -->
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-2">
+                                <div class="form-group">
+                                    <label class="form-label">Umsatz (€) *</label>
+                                    <input type="number" class="form-control" name="revenue" step="0.01" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Zahlungsart *</label>
+                                    <select class="form-control form-select" name="paymentMethod" required>
+                                        <option value="">Bitte wählen...</option>
+                                        <option value="cash">Bargeld</option>
+                                        <option value="card">Karte</option>
+                                        <option value="transfer">Überweisung</option>
+                                        <option value="invoice">Rechnung</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Arbeitszeit (Stunden)</label>
+                                <input type="number" class="form-control" name="workHours" step="0.5" min="0">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Verwendete Materialien</label>
+                                <textarea class="form-control form-textarea" name="materials" 
+                                          placeholder="Liste der verwendeten Materialien und Mengen..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Foto vom Auftrag</label>
+                                <input type="file" class="form-control" name="photo" accept="image/*">
+                                <div class="form-help">Optional: Foto vom abgeschlossenen Auftrag</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Zusätzliche Kommentare</label>
+                                <textarea class="form-control form-textarea" name="comments" 
+                                          placeholder="Besonderheiten, Probleme oder weitere Informationen..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-success btn-full">
+                                    💰 Umsatz melden
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Status Update Section -->
+            <section id="status-update" class="content-section">
+                <div class="section-header">
+                    <h1>📊 Status aktualisieren</h1>
+                    <p class="text-secondary">Aktualisieren Sie den Status Ihrer Aufträge</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Status-Update</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="status-form">
+                            <div class="form-group">
+                                <label class="form-label">Auftrags-ID *</label>
+                                <select class="form-control form-select" name="orderId" required>
+                                    <option value="">Auftrag auswählen...</option>
+                                    <!-- Will be populated dynamically -->
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Neuer Status *</label>
+                                <select class="form-control form-select" name="status" required>
+                                    <option value="">Bitte wählen...</option>
+                                    <option value="accepted">Angenommen</option>
+                                    <option value="in_progress">In Bearbeitung</option>
+                                    <option value="on_hold">Pausiert</option>
+                                    <option value="completed">Abgeschlossen</option>
+                                    <option value="cancelled">Storniert</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Terminwunsch</label>
+                                <div class="grid grid-cols-2">
+                                    <input type="date" class="form-control" name="scheduledDate" placeholder="Datum">
+                                    <input type="time" class="form-control" name="scheduledTime" placeholder="Uhrzeit">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Kommentar</label>
+                                <textarea class="form-control form-textarea" name="comment" 
+                                          placeholder="Zusätzliche Informationen zum Status-Update..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary btn-full">
+                                    📊 Status aktualisieren
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile Section -->
+            <section id="profile" class="content-section">
+                <div class="section-header">
+                    <h1>👤 Profil</h1>
+                    <p class="text-secondary">Ihre Benutzerinformationen und Statistiken</p>
+                </div>
+
+                <div class="profile-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Benutzerinformationen</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="user-info">
+                                <!-- User information will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Statistiken</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="user-stats">
+                                <!-- Statistics will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Order Detail Modal -->
+    <div id="order-detail-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Auftragsdetails</h3>
+                <button class="modal-close" onclick="window.ui.closeModal('order-detail-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="order-detail-content">
+                    <!-- Order details will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="window.ui.closeModal('order-detail-modal')">
+                    Schließen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../shared/utils/auth.js"></script>
+    <script src="../shared/utils/n8n.js"></script>
+    <script src="../shared/components/ui.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
