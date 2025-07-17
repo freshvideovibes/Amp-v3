@@ -2470,6 +2470,24 @@
                 telegramId: userData.id || null
             };
             
+            // Redirect to external admin app
+            if (role === 'admin') {
+                window.location.href = './admin/index.html';
+                return;
+            }
+            
+            // Redirect to external agent app
+            if (role === 'agent') {
+                window.location.href = './amp-agent/index.html';
+                return;
+            }
+            
+            // Redirect to external monteur app
+            if (role === 'monteur') {
+                window.location.href = './amp-monteur/index.html';
+                return;
+            }
+            
             document.getElementById('userRole').textContent = currentUser.name;
             showScreen('dashboardScreen');
             setupMenuForRole(role);

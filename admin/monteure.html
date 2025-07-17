@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monteure - AMP Admin</title>
+    
+    <!-- Shared Styles -->
+    <link rel="stylesheet" href="../shared/styles/base.css">
+    <link rel="stylesheet" href="../shared/styles/components.css">
+    
+    <!-- Admin Specific Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container nav-container">
+            <a href="index.html" class="nav-brand">⚙️ AMP Admin</a>
+            <button class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">📊 Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a href="auftraege.html" class="nav-link">📋 Offene Aufträge</a>
+                </li>
+                <li class="nav-item">
+                    <a href="monteure.html" class="nav-link active">👨‍🔧 Monteure</a>
+                </li>
+                <li class="nav-item">
+                    <a href="reports.html" class="nav-link">📈 Berichte</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="section-header">
+                <h1>👨‍🔧 Monteur-Verwaltung</h1>
+                <p class="text-secondary">Übersicht und Verwaltung aller Monteure</p>
+            </div>
+
+            <!-- Monteur Overview Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🟢</div>
+                    <div class="stat-info">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">Verfügbar</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">🟡</div>
+                    <div class="stat-info">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Beschäftigt</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">🔴</div>
+                    <div class="stat-info">
+                        <div class="stat-number">1</div>
+                        <div class="stat-label">Offline</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <div class="stat-number">9</div>
+                        <div class="stat-label">Gesamt</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Schnellaktionen</h3>
+                </div>
+                <div class="card-body">
+                    <div class="quick-actions">
+                        <button class="btn btn-primary" onclick="addNewMonteur()">
+                            👤 Neuen Monteur hinzufügen
+                        </button>
+                        <button class="btn btn-info" onclick="viewAvailableMonteurs()">
+                            🟢 Verfügbare anzeigen
+                        </button>
+                        <button class="btn btn-warning" onclick="sendBroadcast()">
+                            📢 Rundnachricht senden
+                        </button>
+                        <button class="btn btn-success" onclick="exportMonteurData()">
+                            📥 Daten exportieren
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monteure Grid -->
+            <div class="monteurs-grid">
+                <!-- Monteur 1 - Available -->
+                <div class="monteur-card monteur-card-detailed available">
+                    <div class="monteur-header">
+                        <div class="monteur-avatar">MM</div>
+                        <div class="monteur-basic-info">
+                            <h4>Max Mustermann</h4>
+                            <p>Heizung & Sanitär</p>
+                        </div>
+                        <div class="monteur-status-indicator available">🟢 Verfügbar</div>
+                    </div>
+                    
+                    <div class="monteur-details">
+                        <div class="detail-row">
+                            <span class="detail-label">📍 Standort:</span>
+                            <span class="detail-value">Berlin</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">📞 Telefon:</span>
+                            <span class="detail-value">+49 30 12345678</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">⭐ Bewertung:</span>
+                            <span class="detail-value">4.8 (45 Bewertungen)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">✅ Aufträge:</span>
+                            <span class="detail-value">45 abgeschlossen</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">💰 Umsatz:</span>
+                            <span class="detail-value">€ 8.400 diese Woche</span>
+                        </div>
+                    </div>
+                    
+                    <div class="monteur-actions">
+                        <button class="btn btn-sm btn-primary" onclick="assignToMonteur('Max Mustermann')">
+                            📋 Auftrag zuweisen
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="contactMonteur('Max Mustermann')">
+                            📞 Kontakt
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="viewMonteurDetails('Max Mustermann')">
+                            👁️ Details
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Monteur 2 - Busy -->
+                <div class="monteur-card monteur-card-detailed busy">
+                    <div class="monteur-header">
+                        <div class="monteur-avatar">AS</div>
+                        <div class="monteur-basic-info">
+                            <h4>Anna Schmidt</h4>
+                            <p>Elektro & Smart Home</p>
+                        </div>
+                        <div class="monteur-status-indicator busy">🟡 Beschäftigt</div>
+                    </div>
+                    
+                    <div class="monteur-details">
+                        <div class="detail-row">
+                            <span class="detail-label">📍 Standort:</span>
+                            <span class="detail-value">Hamburg</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">📞 Telefon:</span>
+                            <span class="detail-value">+49 40 98765432</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">⭐ Bewertung:</span>
+                            <span class="detail-value">4.9 (38 Bewertungen)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">🔧 Aktueller Auftrag:</span>
+                            <span class="detail-value">#2024-003 - Wartung</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">⏰ Seit:</span>
+                            <span class="detail-value">08:00 Uhr</span>
+                        </div>
+                    </div>
+                    
+                    <div class="monteur-actions">
+                        <button class="btn btn-sm btn-warning" onclick="addToQueue('Anna Schmidt')">
+                            ⏰ Warteschlange
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="contactMonteur('Anna Schmidt')">
+                            📞 Kontakt
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="trackMonteur('Anna Schmidt')">
+                            📍 Verfolgen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Monteur 3 - Available -->
+                <div class="monteur-card monteur-card-detailed available">
+                    <div class="monteur-header">
+                        <div class="monteur-avatar">PW</div>
+                        <div class="monteur-basic-info">
+                            <h4>Peter Weber</h4>
+                            <p>Klempnerei & Reparatur</p>
+                        </div>
+                        <div class="monteur-status-indicator available">🟢 Verfügbar</div>
+                    </div>
+                    
+                    <div class="monteur-details">
+                        <div class="detail-row">
+                            <span class="detail-label">📍 Standort:</span>
+                            <span class="detail-value">München</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">📞 Telefon:</span>
+                            <span class="detail-value">+49 89 55555555</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">⭐ Bewertung:</span>
+                            <span class="detail-value">4.7 (52 Bewertungen)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">✅ Aufträge:</span>
+                            <span class="detail-value">52 abgeschlossen</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">🏆 Spezialist:</span>
+                            <span class="detail-value">Notfälle</span>
+                        </div>
+                    </div>
+                    
+                    <div class="monteur-actions">
+                        <button class="btn btn-sm btn-primary" onclick="assignToMonteur('Peter Weber')">
+                            📋 Auftrag zuweisen
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="contactMonteur('Peter Weber')">
+                            📞 Kontakt
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="viewMonteurDetails('Peter Weber')">
+                            👁️ Details
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Monteur 4 - Busy -->
+                <div class="monteur-card monteur-card-detailed busy">
+                    <div class="monteur-header">
+                        <div class="monteur-avatar">LB</div>
+                        <div class="monteur-basic-info">
+                            <h4>Lisa Braun</h4>
+                            <p>Heizung & Klimatechnik</p>
+                        </div>
+                        <div class="monteur-status-indicator busy">🟡 Beschäftigt</div>
+                    </div>
+                    
+                    <div class="monteur-details">
+                        <div class="detail-row">
+                            <span class="detail-label">📍 Standort:</span>
+                            <span class="detail-value">Köln</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">📞 Telefon:</span>
+                            <span class="detail-value">+49 221 77777777</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">⭐ Bewertung:</span>
+                            <span class="detail-value">4.6 (29 Bewertungen)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">🔧 Aktueller Auftrag:</span>
+                            <span class="detail-value">#2024-007 - Installation</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">⏰ Geplantes Ende:</span>
+                            <span class="detail-value">16:30 Uhr</span>
+                        </div>
+                    </div>
+                    
+                    <div class="monteur-actions">
+                        <button class="btn btn-sm btn-warning" onclick="addToQueue('Lisa Braun')">
+                            ⏰ Warteschlange
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="contactMonteur('Lisa Braun')">
+                            📞 Kontakt
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="trackMonteur('Lisa Braun')">
+                            📍 Verfolgen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Monteur 5 - Offline -->
+                <div class="monteur-card monteur-card-detailed offline">
+                    <div class="monteur-header">
+                        <div class="monteur-avatar">MF</div>
+                        <div class="monteur-basic-info">
+                            <h4>Michael Fischer</h4>
+                            <p>Sanitär & Rohrleitungen</p>
+                        </div>
+                        <div class="monteur-status-indicator offline">🔴 Offline</div>
+                    </div>
+                    
+                    <div class="monteur-details">
+                        <div class="detail-row">
+                            <span class="detail-label">📍 Standort:</span>
+                            <span class="detail-value">Frankfurt</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">📞 Telefon:</span>
+                            <span class="detail-value">+49 69 99999999</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">⭐ Bewertung:</span>
+                            <span class="detail-value">4.5 (31 Bewertungen)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">📅 Letzter Login:</span>
+                            <span class="detail-value">Gestern 18:45</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">💤 Status:</span>
+                            <span class="detail-value">Feierabend</span>
+                        </div>
+                    </div>
+                    
+                    <div class="monteur-actions">
+                        <button class="btn btn-sm btn-secondary" disabled>
+                            📴 Nicht verfügbar
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="contactMonteur('Michael Fischer')">
+                            📞 Kontakt
+                        </button>
+                        <button class="btn btn-sm btn-warning" onclick="sendNotification('Michael Fischer')">
+                            📱 Benachrichtigen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Monteur 6 - Available -->
+                <div class="monteur-card monteur-card-detailed available">
+                    <div class="monteur-header">
+                        <div class="monteur-avatar">SK</div>
+                        <div class="monteur-basic-info">
+                            <h4>Sarah Klein</h4>
+                            <p>Elektro & Beleuchtung</p>
+                        </div>
+                        <div class="monteur-status-indicator available">🟢 Verfügbar</div>
+                    </div>
+                    
+                    <div class="monteur-details">
+                        <div class="detail-row">
+                            <span class="detail-label">📍 Standort:</span>
+                            <span class="detail-value">Düsseldorf</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">📞 Telefon:</span>
+                            <span class="detail-value">+49 211 44444444</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">⭐ Bewertung:</span>
+                            <span class="detail-value">4.9 (22 Bewertungen)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">✅ Aufträge:</span>
+                            <span class="detail-value">22 abgeschlossen</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">🆕 Seit:</span>
+                            <span class="detail-value">3 Monate</span>
+                        </div>
+                    </div>
+                    
+                    <div class="monteur-actions">
+                        <button class="btn btn-sm btn-primary" onclick="assignToMonteur('Sarah Klein')">
+                            📋 Auftrag zuweisen
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="contactMonteur('Sarah Klein')">
+                            📞 Kontakt
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="viewMonteurDetails('Sarah Klein')">
+                            👁️ Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assignment Queue -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Warteschlange unzugewiesener Aufträge</h3>
+                    <span class="badge badge-warning">3 wartend</span>
+                </div>
+                <div class="card-body">
+                    <div class="assignment-queue">
+                        <div class="queue-item">
+                            <div class="queue-order">
+                                <strong>#2024-008</strong>
+                                <span>Notfall - Heizungsausfall</span>
+                            </div>
+                            <div class="queue-location">📍 Berlin, Prenzlauer Berg</div>
+                            <div class="queue-time">⏰ Vor 2 Min</div>
+                            <button class="btn btn-sm btn-success" onclick="autoAssign('#2024-008')">
+                                🤖 Auto-Zuweisung
+                            </button>
+                        </div>
+                        
+                        <div class="queue-item">
+                            <div class="queue-order">
+                                <strong>#2024-009</strong>
+                                <span>Wartung - Klimaanlage</span>
+                            </div>
+                            <div class="queue-location">📍 Hamburg, Altona</div>
+                            <div class="queue-time">⏰ Vor 8 Min</div>
+                            <button class="btn btn-sm btn-primary" onclick="manualAssign('#2024-009')">
+                                👤 Manuell zuweisen
+                            </button>
+                        </div>
+                        
+                        <div class="queue-item">
+                            <div class="queue-order">
+                                <strong>#2024-010</strong>
+                                <span>Installation - Neue Heizung</span>
+                            </div>
+                            <div class="queue-location">📍 München, Schwabing</div>
+                            <div class="queue-time">⏰ Vor 15 Min</div>
+                            <button class="btn btn-sm btn-primary" onclick="manualAssign('#2024-010')">
+                                👤 Manuell zuweisen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Shared JavaScript -->
+    <script src="../shared/components/ui.js"></script>
+    
+    <!-- Page-specific JavaScript -->
+    <script>
+        // Additional styles for this page
+        const additionalStyles = `
+            .monteur-card-detailed {
+                background: var(--bg-primary);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-lg);
+                padding: var(--spacing-lg);
+                box-shadow: var(--shadow-sm);
+                transition: var(--transition-fast);
+            }
+            
+            .monteur-card-detailed:hover {
+                box-shadow: var(--shadow-md);
+                transform: translateY(-2px);
+            }
+            
+            .monteur-card-detailed.available {
+                border-left: 4px solid var(--success-color);
+            }
+            
+            .monteur-card-detailed.busy {
+                border-left: 4px solid var(--warning-color);
+            }
+            
+            .monteur-card-detailed.offline {
+                border-left: 4px solid var(--error-color);
+                opacity: 0.8;
+            }
+            
+            .monteur-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: var(--spacing-lg);
+                gap: var(--spacing-md);
+            }
+            
+            .monteur-avatar {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: var(--primary-color);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                font-size: var(--font-size-lg);
+            }
+            
+            .monteur-basic-info {
+                flex: 1;
+            }
+            
+            .monteur-basic-info h4 {
+                margin: 0 0 var(--spacing-xs) 0;
+                color: var(--text-primary);
+            }
+            
+            .monteur-basic-info p {
+                margin: 0;
+                color: var(--text-secondary);
+                font-size: var(--font-size-sm);
+            }
+            
+            .monteur-status-indicator {
+                font-size: var(--font-size-sm);
+                font-weight: 600;
+                padding: var(--spacing-xs) var(--spacing-sm);
+                border-radius: var(--radius-sm);
+            }
+            
+            .monteur-status-indicator.available {
+                background: rgba(16, 185, 129, 0.1);
+                color: var(--success-color);
+            }
+            
+            .monteur-status-indicator.busy {
+                background: rgba(245, 158, 11, 0.1);
+                color: var(--warning-color);
+            }
+            
+            .monteur-status-indicator.offline {
+                background: rgba(239, 68, 68, 0.1);
+                color: var(--error-color);
+            }
+            
+            .monteur-details {
+                margin-bottom: var(--spacing-lg);
+            }
+            
+            .detail-row {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: var(--spacing-sm);
+                padding: var(--spacing-xs) 0;
+            }
+            
+            .detail-label {
+                color: var(--text-secondary);
+                font-size: var(--font-size-sm);
+            }
+            
+            .detail-value {
+                color: var(--text-primary);
+                font-size: var(--font-size-sm);
+                font-weight: 500;
+                text-align: right;
+            }
+            
+            .monteur-actions {
+                display: flex;
+                gap: var(--spacing-xs);
+                flex-wrap: wrap;
+            }
+            
+            .quick-actions {
+                display: flex;
+                gap: var(--spacing-md);
+                flex-wrap: wrap;
+            }
+            
+            @media (max-width: 768px) {
+                .monteur-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+                
+                .monteur-status-indicator {
+                    align-self: flex-end;
+                }
+                
+                .quick-actions {
+                    flex-direction: column;
+                }
+                
+                .monteur-actions {
+                    justify-content: center;
+                }
+            }
+        `;
+        
+        // Add styles to page
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = additionalStyles;
+        document.head.appendChild(styleSheet);
+        
+        // Page-specific functions
+        function addNewMonteur() {
+            console.log('Adding new monteur...');
+            alert('Neuer Monteur Dialog würde hier geöffnet');
+        }
+        
+        function viewAvailableMonteurs() {
+            console.log('Viewing available monteurs...');
+            // Filter to show only available monteurs
+        }
+        
+        function sendBroadcast() {
+            console.log('Sending broadcast message...');
+            alert('Rundnachricht Dialog würde hier geöffnet');
+        }
+        
+        function exportMonteurData() {
+            console.log('Exporting monteur data...');
+            alert('Datenexport wird vorbereitet...');
+        }
+        
+        function assignToMonteur(monteurName) {
+            console.log(`Opening assignment dialog for: ${monteurName}`);
+            alert(`Auftragszuweisung für ${monteurName} würde hier geöffnet`);
+        }
+        
+        function contactMonteur(monteurName) {
+            console.log(`Contacting monteur: ${monteurName}`);
+            alert(`Kontakt zu ${monteurName} wird hergestellt`);
+        }
+        
+        function viewMonteurDetails(monteurName) {
+            console.log(`Viewing details for: ${monteurName}`);
+            alert(`Detailansicht für ${monteurName} würde hier geöffnet`);
+        }
+        
+        function addToQueue(monteurName) {
+            console.log(`Adding to queue for: ${monteurName}`);
+            alert(`Auftrag wird zur Warteschlange von ${monteurName} hinzugefügt`);
+        }
+        
+        function trackMonteur(monteurName) {
+            console.log(`Tracking monteur: ${monteurName}`);
+            alert(`Live-Tracking für ${monteurName} würde hier geöffnet`);
+        }
+        
+        function sendNotification(monteurName) {
+            console.log(`Sending notification to: ${monteurName}`);
+            alert(`Push-Benachrichtigung an ${monteurName} wird gesendet`);
+        }
+        
+        function autoAssign(orderNumber) {
+            console.log(`Auto-assigning order: ${orderNumber}`);
+            alert(`Automatische Zuweisung für ${orderNumber} wird durchgeführt`);
+        }
+        
+        function manualAssign(orderNumber) {
+            console.log(`Manual assignment for order: ${orderNumber}`);
+            alert(`Manuelle Zuweisung für ${orderNumber} würde hier geöffnet`);
+        }
+    </script>
+</body>
+</html>
